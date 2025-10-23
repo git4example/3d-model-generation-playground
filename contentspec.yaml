@@ -12,7 +12,7 @@ awsAccountConfig:
     - spotfleet.amazonaws.com
     - eks.amazonaws.com
     - eks-nodegroup.amazonaws.com
-    - fsx.amazonaws.com
+    # - fsx.amazonaws.com
     - ssm.amazonaws.com
     - autoscaling.amazonaws.com
   ec2KeyPair: true
