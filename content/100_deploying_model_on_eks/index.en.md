@@ -1,15 +1,33 @@
 ---
-title : "Configure storage - Host model data on Amazon FSx for Lustre"
+title : "Deploying TripoSR on Amazon EKS"
 weight : 100
 ---
 
 ## Module Overview
 
-In this workshop the **Mistral-7B-Instruct** model is stored in an Amazon S3 bucket, which is liked to an Amazon FSx for Lustre File system, which the vLLM container will use for the Generative AI ChatBot application.
+In this workshop the **TripoSR** model is stored in an Amazon ECR...
 
-In this module you will deploy and integrate an FSx for Lustre instance (which will serve your model data) with your Amazon EKS cluster (which will host your Generative AI application), and learn about Kubernetes storage concepts, such as the CSI driver, Persistent Volumes, StorageClass,and  Static vs Dynamic storage provisioning. The infrastructure for this module, comprises of an Amazon EKS cluster with two EC2 worker nodes, Amazon FSx for Lustre file system, and Amazon S3 Bucket.
+## Module 3: Deploying TripoSR on Amazon EKS
 
+### Overview of TripoSR
+- Introduction to TripoSR capabilities and architecture
+- GitHub repository: https://github.com/VAST-AI-Research/TripoSR
+- Model strengths and use cases
 
+### Hands-on Exercise
+- Examine the containerized TripoSR model
+- Deploy the pre-built container to EKS
+- Configure scaling and resource allocation
+- Test the deployment with sample inputs
+
+### Key Implementation Steps
+1. Review the EKS cluster configuration
+2. Understand the Kubernetes deployment manifests
+3. Deploy the TripoSR container using kubectl
+4. Configure API endpoints for the model
+5. Test the integration with the frontend UI
+
+[[Replace image below]]
 ![fsxl-lab](/static/images/fsxl_lab.png)
 
 ---
