@@ -1,0 +1,5 @@
+name                = "eks-3d-model-inference" # Name must start with letter and no spaces
+region              = "us-west-2"
+vpc_cidr            = "10.5.0.0/16"
+eks_cluster_version = "1.33"
+domain              = "enter.your.domain"

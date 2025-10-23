@@ -1964,14 +1964,14 @@ Resources:
                   echo "Verify s5cmd installation"
                   sudo -u ${VSCodeUser} --login s5cmd help
 
-  RunCreateFSxLBucketAndUploadModel:
+  RunCreateTerraformInfra:
     DependsOn: [RunDownloadWorkshopAssetsSSMDocument]
     Type: Custom::RunSSMDocLambda
     Properties:
       ServiceToken: !GetAtt RunSSMDocLambda.Arn
       ServiceTimeout: 3600
       InstanceId: !Ref VSCodeInstance
-      DocumentName: !Ref CreateFSxLBucketAndUploadModel
+      DocumentName: !Ref CreateTerraformInfra
       DeleteDocumentName: ""
       MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl
       LambdaArn: !GetAtt RunSSMDocLambda.Arn
@@ -1979,7 +1979,7 @@ Resources:
       VSCodePassword: !GetAtt SecretPlaintext.password
       LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
 
-  CreateFSxLBucketAndUploadModel:
+  CreateCreateTerraformInfra:
     Type: AWS::SSM::Document
     Properties:
       DocumentType: Command
@@ -2009,166 +2009,221 @@ Resources:
                 echo "Check if Terraform installed."
                 terraform --version
 
-                sed -i.bak -e 's/--AWS_REGION--/${AWS::Region}/' /home/${VSCodeUser}/environment/terraform/main.tf
-                sed -i.bak -e 's/--EKS_VERSION--/${EKSClusterVersion}/' /home/${VSCodeUser}/environment/terraform/main.tf
-                
                 cd /home/${VSCodeUser}/environment/terraform/
                 terraform init
 
                 # Create bucket before copy 
-                echo "Creating FSx Lustre Bucket"
-                terraform apply -target="module.fsx-lustre-bucket" -auto-approve 
-
-                # Copy model to fsx bucket
-                export S3_BUCKET=$(aws s3 ls | grep fsx-lustre | grep -v fsx-lustre-2ndregion | awk '{print$3}')
-                echo "Bucket name: $S3_BUCKET"
-
-                aws configure set default.s3.max_concurrent_requests 20
-                aws configure set default.s3.signature_version s3v4
-
-                # Copy model to FSxL S3 bucket
-                echo "Starting model upload @ $(date)"
-                sudo -u ${VSCodeUser} --login s5cmd sync --delete "${Assets}Mistral-7B-Instruct-v0.2/*" "s3://$S3_BUCKET/Mistral-7B-Instruct-v0.2/" 
-
-                # Verify object counts
-                echo "Source bucket object counts:"
-                aws s3 ls --summarize --human-readable --recursive ${Assets}Mistral-7B-Instruct-v0.2
-                echo "Destination bucket object counts:"
-                aws s3 ls --summarize --human-readable --recursive s3://$S3_BUCKET/Mistral-7B-Instruct-v0.2
-                echo "End model upload @ $(date)"
+                echo "Starting terraform apply @ $(date)"
+                terraform apply -var="region=${AWS::Region}" -auto-approve 
+                
+                echo "End terraform apply @ $(date)"
   
-  RunCreateVPCEKSClusterAndFSxL:
-    DependsOn: [RunCreateFSxLBucketAndUploadModel]
-    Type: Custom::RunSSMDocLambda
-    Properties:
-      ServiceToken: !GetAtt RunSSMDocLambda.Arn
-      ServiceTimeout: 3600
-      InstanceId: !Ref VSCodeInstance
-      DocumentName: !Ref CreateVPCEKSClusterAndFSxL
-      DeleteDocumentName: ""
-      MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl 
-      LambdaArn: !GetAtt RunSSMDocLambda.Arn
-      CloudWatchLogGroupName: !Sub /aws/ssm/${CreateVPCEKSClusterAndFSxL}
-      VSCodePassword: !GetAtt SecretPlaintext.password
-      LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
 
-  CreateVPCEKSClusterAndFSxL:
-    Type: AWS::SSM::Document
-    Properties:
-      DocumentType: Command
-      Content:
-        schemaVersion: '2.2'
-        description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
-        parameters:
-          LinuxFlavor:
-            type: String
-            default: 'al2023'
-          VSCodePassword:
-            type: String
-            default: !Ref AWS::StackId
-        # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
-        mainSteps:
-          - action: aws:runShellScript
-            name: CreateVPCEKSClusterAndFSxL
-            precondition:
-              StringEquals:
-                - '{{ LinuxFlavor }}'
-                - al2023          
-            inputs:
-              timeoutSeconds: '3600'
-              runCommand:
-                - !Sub |
-                  #!/bin/bash
-                  terraform --version
+  # RunCreateFSxLBucketAndUploadModel:
+  #   DependsOn: [RunDownloadWorkshopAssetsSSMDocument]
+  #   Type: Custom::RunSSMDocLambda
+  #   Properties:
+  #     ServiceToken: !GetAtt RunSSMDocLambda.Arn
+  #     ServiceTimeout: 3600
+  #     InstanceId: !Ref VSCodeInstance
+  #     DocumentName: !Ref CreateFSxLBucketAndUploadModel
+  #     DeleteDocumentName: ""
+  #     MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl
+  #     LambdaArn: !GetAtt RunSSMDocLambda.Arn
+  #     CloudWatchLogGroupName: !Sub /aws/ssm/${CreateFSxLBucketAndUploadModel}
+  #     VSCodePassword: !GetAtt SecretPlaintext.password
+  #     LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
 
-                  # Create VPC
-                  echo '=== Create VPC for EKS Cluster ==='
-                  cd /home/${VSCodeUser}/environment/terraform/
-                  ls -la
-                  terraform apply -target="module.vpc" --auto-approve 
+  # CreateFSxLBucketAndUploadModel:
+  #   Type: AWS::SSM::Document
+  #   Properties:
+  #     DocumentType: Command
+  #     Content:
+  #       schemaVersion: '2.2'
+  #       description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
+  #       parameters:
+  #         LinuxFlavor:
+  #           type: String
+  #           default: 'al2023'
+  #         VSCodePassword:
+  #           type: String
+  #           default: !Ref AWS::StackId
+  #       # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
+  #       mainSteps:
+  #         - action: aws:runShellScript
+  #           name: CreateFSxLBucketAndUploadModel
+  #           precondition:
+  #             StringEquals:
+  #               - '{{ LinuxFlavor }}'
+  #               - al2023          
+  #           inputs:
+  #             timeoutSeconds: '3600'
+  #             runCommand:
+  #             - !Sub |
+  #               #!/bin/bash
+  #               echo "Check if Terraform installed."
+  #               terraform --version
 
-                  # Create EKS Cluster and FSx Filesystem
-                  echo '=== Create EKS Cluster and FSx Filesystem ==='
-                  echo 'EKS Cluster version - ${EKSClusterVersion} will be created in region ${AWS::Region}'
-                  terraform apply -target="aws_fsx_lustre_file_system.fsx_lustre" -target="module.eks" --auto-approve
+  #               sed -i.bak -e 's/--AWS_REGION--/${AWS::Region}/' /home/${VSCodeUser}/environment/terraform/main.tf
+  #               sed -i.bak -e 's/--EKS_VERSION--/${EKSClusterVersion}/' /home/${VSCodeUser}/environment/terraform/main.tf
+                
+  #               cd /home/${VSCodeUser}/environment/terraform/
+  #               terraform init
 
-  RunCreateEKSClusterResource:
-    DependsOn: [RunCreateVPCEKSClusterAndFSxL]
-    Type: Custom::RunSSMDocLambda
-    Properties:
-      ServiceToken: !GetAtt RunSSMDocLambda.Arn
-      ServiceTimeout: 3600
-      InstanceId: !Ref VSCodeInstance
-      DocumentName: !Ref CreateEKSClusterResource
-      DeleteDocumentName: ""
-      MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl
-      LambdaArn: !GetAtt RunSSMDocLambda.Arn
-      CloudWatchLogGroupName: !Sub /aws/ssm/${CreateEKSClusterResource}
-      VSCodePassword: !GetAtt SecretPlaintext.password
-      LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
+  #               # Create bucket before copy 
+  #               echo "Creating FSx Lustre Bucket"
+  #               terraform apply -target="module.fsx-lustre-bucket" -auto-approve 
 
-  CreateEKSClusterResource:
-    Type: AWS::SSM::Document
-    Properties:
-      DocumentType: Command
-      Content:
-        schemaVersion: '2.2'
-        description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
-        parameters:
-          LinuxFlavor:
-            type: String
-            default: 'al2023'
-          VSCodePassword:
-            type: String
-            default: !Ref AWS::StackId
-        # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
-        mainSteps:
-          - action: aws:runShellScript
-            name: CreateEKSClusterResource
-            precondition:
-              StringEquals:
-                - '{{ LinuxFlavor }}'
-                - al2023          
-            inputs:
-              timeoutSeconds: '3600'
-              runCommand:
-                - !Sub |
-                  #!/bin/bash
-                  terraform --version
+  #               # Copy model to fsx bucket
+  #               export S3_BUCKET=$(aws s3 ls | grep fsx-lustre | grep -v fsx-lustre-2ndregion | awk '{print$3}')
+  #               echo "Bucket name: $S3_BUCKET"
 
-                  cd /home/${VSCodeUser}/environment/terraform/
-                  ls -la
+  #               aws configure set default.s3.max_concurrent_requests 20
+  #               aws configure set default.s3.signature_version s3v4
 
-                  echo "Applying Terraform configuration..."
-                  terraform apply --auto-approve
+  #               # Copy model to FSxL S3 bucket
+  #               echo "Starting model upload @ $(date)"
+  #               sudo -u ${VSCodeUser} --login s5cmd sync --delete "${Assets}Mistral-7B-Instruct-v0.2/*" "s3://$S3_BUCKET/Mistral-7B-Instruct-v0.2/" 
 
-                  # echo "Waiting for 60 seconds to allow ALB controller to start..."
-                  # sleep 60
+  #               # Verify object counts
+  #               echo "Source bucket object counts:"
+  #               aws s3 ls --summarize --human-readable --recursive ${Assets}Mistral-7B-Instruct-v0.2
+  #               echo "Destination bucket object counts:"
+  #               aws s3 ls --summarize --human-readable --recursive s3://$S3_BUCKET/Mistral-7B-Instruct-v0.2
+  #               echo "End model upload @ $(date)"
+  
+  # RunCreateVPCEKSClusterAndFSxL:
+  #   DependsOn: [RunCreateFSxLBucketAndUploadModel]
+  #   Type: Custom::RunSSMDocLambda
+  #   Properties:
+  #     ServiceToken: !GetAtt RunSSMDocLambda.Arn
+  #     ServiceTimeout: 3600
+  #     InstanceId: !Ref VSCodeInstance
+  #     DocumentName: !Ref CreateVPCEKSClusterAndFSxL
+  #     DeleteDocumentName: ""
+  #     MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl 
+  #     LambdaArn: !GetAtt RunSSMDocLambda.Arn
+  #     CloudWatchLogGroupName: !Sub /aws/ssm/${CreateVPCEKSClusterAndFSxL}
+  #     VSCodePassword: !GetAtt SecretPlaintext.password
+  #     LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
 
-                  # echo "Applying Terraform configuration again..."
-                  # terraform apply --auto-approve
+  # CreateVPCEKSClusterAndFSxL:
+  #   Type: AWS::SSM::Document
+  #   Properties:
+  #     DocumentType: Command
+  #     Content:
+  #       schemaVersion: '2.2'
+  #       description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
+  #       parameters:
+  #         LinuxFlavor:
+  #           type: String
+  #           default: 'al2023'
+  #         VSCodePassword:
+  #           type: String
+  #           default: !Ref AWS::StackId
+  #       # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
+  #       mainSteps:
+  #         - action: aws:runShellScript
+  #           name: CreateVPCEKSClusterAndFSxL
+  #           precondition:
+  #             StringEquals:
+  #               - '{{ LinuxFlavor }}'
+  #               - al2023          
+  #           inputs:
+  #             timeoutSeconds: '3600'
+  #             runCommand:
+  #               - !Sub |
+  #                 #!/bin/bash
+  #                 terraform --version
 
-                  echo "Running sysprep job"
-                  terraform apply -var="create_one_off_job=true" --auto-approve
+  #                 # Create VPC
+  #                 echo '=== Create VPC for EKS Cluster ==='
+  #                 cd /home/${VSCodeUser}/environment/terraform/
+  #                 ls -la
+  #                 terraform apply -target="module.vpc" --auto-approve 
+
+  #                 # Create EKS Cluster and FSx Filesystem
+  #                 echo '=== Create EKS Cluster and FSx Filesystem ==='
+  #                 echo 'EKS Cluster version - ${EKSClusterVersion} will be created in region ${AWS::Region}'
+  #                 terraform apply -target="aws_fsx_lustre_file_system.fsx_lustre" -target="module.eks" --auto-approve
+
+  # RunCreateEKSClusterResource:
+  #   DependsOn: [RunCreateVPCEKSClusterAndFSxL]
+  #   Type: Custom::RunSSMDocLambda
+  #   Properties:
+  #     ServiceToken: !GetAtt RunSSMDocLambda.Arn
+  #     ServiceTimeout: 3600
+  #     InstanceId: !Ref VSCodeInstance
+  #     DocumentName: !Ref CreateEKSClusterResource
+  #     DeleteDocumentName: ""
+  #     MonitoringSQSQueue: !GetAtt SSMCommandMonitorQueue.QueueUrl
+  #     LambdaArn: !GetAtt RunSSMDocLambda.Arn
+  #     CloudWatchLogGroupName: !Sub /aws/ssm/${CreateEKSClusterResource}
+  #     VSCodePassword: !GetAtt SecretPlaintext.password
+  #     LinuxFlavor: !If [IsAL2023, 'al2023', 'ubuntu']
+
+  # CreateEKSClusterResource:
+  #   Type: AWS::SSM::Document
+  #   Properties:
+  #     DocumentType: Command
+  #     Content:
+  #       schemaVersion: '2.2'
+  #       description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
+  #       parameters:
+  #         LinuxFlavor:
+  #           type: String
+  #           default: 'al2023'
+  #         VSCodePassword:
+  #           type: String
+  #           default: !Ref AWS::StackId
+  #       # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
+  #       mainSteps:
+  #         - action: aws:runShellScript
+  #           name: CreateEKSClusterResource
+  #           precondition:
+  #             StringEquals:
+  #               - '{{ LinuxFlavor }}'
+  #               - al2023          
+  #           inputs:
+  #             timeoutSeconds: '3600'
+  #             runCommand:
+  #               - !Sub |
+  #                 #!/bin/bash
+  #                 terraform --version
+
+  #                 cd /home/${VSCodeUser}/environment/terraform/
+  #                 ls -la
+
+  #                 echo "Applying Terraform configuration..."
+  #                 terraform apply --auto-approve
+
+  #                 # echo "Waiting for 60 seconds to allow ALB controller to start..."
+  #                 # sleep 60
+
+  #                 # echo "Applying Terraform configuration again..."
+  #                 # terraform apply --auto-approve
+
+  #                 echo "Running sysprep job"
+  #                 terraform apply -var="create_one_off_job=true" --auto-approve
                   
-                  echo "Deleting FSx Lustre sysprep resources...Deleting sysprep sysprep job, pv, pvc and fsx csi driver"
+  #                 echo "Deleting FSx Lustre sysprep resources...Deleting sysprep sysprep job, pv, pvc and fsx csi driver"
 
-                  echo "Deleting with create_one_off_job=false --> kubernetes_job.sysprep, kubectl_manifest.sysprep_pvc, kubectl_manifest.sysprep_pv, helm_release.fsx_csi_driver..."
-                  terraform apply -var="create_one_off_job=false" --auto-approve 
+  #                 echo "Deleting with create_one_off_job=false --> kubernetes_job.sysprep, kubectl_manifest.sysprep_pvc, kubectl_manifest.sysprep_pv, helm_release.fsx_csi_driver..."
+  #                 terraform apply -var="create_one_off_job=false" --auto-approve 
 
-                  # echo "Destroying kubernetes_job.sysprep..."
-                  # terraform destroy --target kubernetes_job.sysprep --auto-approve 
+  #                 # echo "Destroying kubernetes_job.sysprep..."
+  #                 # terraform destroy --target kubernetes_job.sysprep --auto-approve 
                  
-                  # echo "Destroying kubectl_manifest.sysprep_pvc..."
-                  # terraform destroy --target kubectl_manifest.sysprep_pvc --auto-approve 
+  #                 # echo "Destroying kubectl_manifest.sysprep_pvc..."
+  #                 # terraform destroy --target kubectl_manifest.sysprep_pvc --auto-approve 
 
-                  # echo "Destroying kubectl_manifest.sysprep_pv..."
-                  # terraform destroy --target kubectl_manifest.sysprep_pv --auto-approve 
+  #                 # echo "Destroying kubectl_manifest.sysprep_pv..."
+  #                 # terraform destroy --target kubectl_manifest.sysprep_pv --auto-approve 
 
-                  # echo "Destroying helm_release.fsx_csi_driver..."
-                  # terraform destroy --target helm_release.fsx_csi_driver --auto-approve 
+  #                 # echo "Destroying helm_release.fsx_csi_driver..."
+  #                 # terraform destroy --target helm_release.fsx_csi_driver --auto-approve 
 
-                  echo "Cleanup completed."
+  #                 echo "Cleanup completed."
 
   RunDestroyTerraformResources:
     Type: Custom::RunSSMDocLambda
@@ -2216,7 +2271,8 @@ Resources:
                 ls -la
 
                 echo "Deleting all Terraform-managed resources..."
-                terraform destroy --auto-approve -lock=false
+                # terraform destroy --auto-approve -lock=false
+                terraform destroy --auto-approve
 
                 echo "Terraform destroy operation completed."
 
