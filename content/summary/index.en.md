@@ -1,6 +1,6 @@
 ---
 title : "Summary: Model Comparison and Results"
-weight : 40
+weight : 1000
 ---
 
 ### Model Comparison and Selection
