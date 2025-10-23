@@ -76,7 +76,7 @@ awsAccountConfig:
 infrastructure:
   cloudformationTemplates:
     - templateLocation: static/3DPlayground.yaml
-      label: 3D_Model_Inference_Playground
+      label: Inference 3D Model Playground
       parameters:
         - templateParameter: Assets
           defaultValue: "s3://{{.AssetsBucketName}}/{{.AssetsBucketPrefix}}"
