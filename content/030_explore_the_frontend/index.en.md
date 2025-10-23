@@ -17,3 +17,5 @@ weight : 30
 - API Gateway configuration (out-of-date)
 - Model routing and selection
 - Asset storage and retrieval from S3 (Feel free to change this)
+
+[[Callie to update]]
