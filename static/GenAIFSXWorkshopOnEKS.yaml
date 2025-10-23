@@ -1289,9 +1289,9 @@ Resources:
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${VSCodeSSMDoc}
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${WorkshopPreparationDocument}
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${DownloadWorkshopAssetsSSMDocument}
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateFSxLBucketAndUploadModel}
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateVPCEKSClusterAndFSxL}
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateEKSClusterResource}
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateTerraformInfra}
+                  # - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateVPCEKSClusterAndFSxL}
+                  # - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CreateEKSClusterResource}
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${DestroyTerraformResources}
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${DummyDeleteInfraDocument}
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/AmazonCloudWatch-ManageAgent
@@ -1985,7 +1985,7 @@ Resources:
       DocumentType: Command
       Content:
         schemaVersion: '2.2'
-        description: Create Fsx, EKS, S3 ..etc resources for workshop requirement
+        description: Create resources for workshop requirement via terraform
         parameters:
           LinuxFlavor:
             type: String
@@ -1996,7 +1996,7 @@ Resources:
         # all mainSteps scripts are in in /var/lib/amazon/ssm/<instanceid>/document/orchestration/<uuid>/<StepName>/_script.sh
         mainSteps:
           - action: aws:runShellScript
-            name: CreateFSxLBucketAndUploadModel
+            name: CreateCreateTerraformInfra
             precondition:
               StringEquals:
                 - '{{ LinuxFlavor }}'
