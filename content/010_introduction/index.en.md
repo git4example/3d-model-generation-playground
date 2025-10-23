@@ -5,63 +5,185 @@ weight: 10
 
 Copyright Amazon Web Services, Inc. and its affiliates. All rights reserved. This sample code is made available under the MIT-0 license. See the [LICENSE](./LICENSE.en.md) file.
 
-Errors or corrections? Contact ppariksh@amazon.com, akbariw@amazon.com and ameenamz@amazon.com
+Need updates or seeing errors? Contact awsjlin@amazon.com, calliecg@amazon.com, lestesim@amazon.com, quinncsh@amazon.com, and bryancwh@amazon.com
 
 -------------------------------------------------------------
 ## Workshop Objective
 In this workshop, you will learn how you can:
-1. Deploy a Generative AI chatbot application on Kubernetes by deploying a vLLM and a WebUI Pod on an Amazon EKS cluster, store and access the Mistral-7B model using Amazon FSx for Lustre and  Amazon S3, and leverage Accelerate Compute for your Generative AI workload using AWS Inferentia Accelerator.
-2. Let EKS Auto to scale the number of EKS managed nodes, when there are additional Pod requests that require additional nodes, to enable scale and operational efficiency.
-3. Use AWS Inferentia Accelerated Compute in your Amazon EKS clusters, as a new nodepool to power your Generative AI applications.
-4. Configure Amazon FSx for Lustre and Amazon S3, as your performant and scalable data layer, which will host your model and data
-5. Achieve operational efficiency at the data layer: accessing the same model data across container Pods without storing multiple copies, and seamlessly sharing your data across regions, for scenario's such as distributed access and sharing, to DR.
+1. Generate 3D models from 3D generative AI models from 2D images/text-to-2D images on NVIDIA GPUs on AWS.
+2. Use Amazon Bedrock for customization and modification of images.
+3. Deploy and scale image-to-3D model inference using Amazon EKS.
+4. Learn to build a scalable architecture for 3D asset generation and management.
 
+****Target Audience****: Technical leaders, Engineering Managers, Solutions Architects, DevOps Engineers/Platform Engineers, Game Developers/Technical Artists, Machine Learning Scientists/Engineers, Cloud Architects, Students
 
+****Prerequisites****: Recommended to have an fundamental understanding of AWS Cloud
+- AWS account access
+- Basic understanding of AWS services
+- Familiarity with containerization concepts
+- Download and install Blender at the start of the workshop
 
-****Target Audience****: DevOps engineers, Machine Learning Scientists/Engineers, Container & Storage engineers, Cloud Architects
-
-****Prerequisites****: Recommended to have an fundamental understanding of AWS containers, and AWS Cloud
-
-****Duration****: Approximately take 2 hours.
+****Duration****: Approximately 1 hour.
 
 ![lab-image](/static/images/lab-image.png)
 
 -----
 
-## Generative AI and Machine Learning
+## Generative AI and Machine Learning in 3D Model Generation
+
+### Understanding the AI/ML Pipeline
 Generative AI and Machine Learning (ML) is helping businesses transform the way they operate and innovate. Generative AI refers to a class of Artificial Intelligence that leverages Large Language Models (LLM) in order to generate new content from a prompt, content such as text, images, audio, and software code.
 
-## What is a Large Language Model (LLM)
-Large Language Models (LLMs) are a type of machine learning model that is trained on vast amounts of text data to learn the patterns and structure of natural language. These models can then be used for a wide range of natural language processing tasks, such as text generation, question answering, and language translation. In this lab we are going to use the open-source Mistral-7B-Instruct model, which is a specific LLM model with 7 billion parameters. The "Instruct" in the name refers to the fact that this model has been trained to follow instructions and perform a wide variety of tasks, beyond just generating text, i.e. it is suitable for chat applications. You will be using this open source LLM model in this workshop.
+#### Foundational Concepts
+* **Neural Networks**: Deep learning architectures that process and transform input data
+* **Training Data**: Typically consists of paired 2D images and their corresponding 3D models
+* **Inference**: Process of generating new 3D models from unseen 2D images
 
+-----
 
-## What is vLLM
-[**vLLM (Virtual Large Language Model)**](https://github.com/vllm-project/vllm) is an open-source, easy-to-use, library for LLM inference and serving. It provides a framework that allows LLM models such as Mistral-7B-Instruct, to be deployed to provide text generation inference. vLLM provides an API that is compatible with OpenAI API, making it easy to integrate LLM applications.
+## Basic Concepts of 3D Models
 
-**vLLM is fast with:**
-- State-of-the-art serving throughput
-- Efficient management of attention key and value memory with PagedAttention
-- Continuous batching of incoming request
-- Fast model execution with CUDA/HIP graph
+### What is a 3D Model?
+A 3D model is a digital representation of a three-dimensional object. Modern 3D models used in web and mobile applications are typically stored in formats like .glb (GL Binary) and .usdz (Universal Scene Description Zip).
 
-**vLLM is flexible and easy to use with:**
-- Seamless integration with popular HuggingFace models
-- OpenAI-compatible API server
-- Prefix caching support
-- Supports chipsets such as: AWS Neuron, NVIDIA GPUs and others,
+### Core Components of 3D Models
 
-## Deploying Mistral-7B-Instruct using a vLLM on Amazon EKS
-To provide text generation inference capability with an OpenAI-compatible endpoint, we will deploy the Mistral-7B-Instruct model using the vLLM framework on Amazon Elastic Kubernetes Service (EKS). We will let EKS Auto to spin up the AWS inferentia2 EC2 node (Accelerated Compute designed for Generative AI), where it will launch a vLLM Pod from an container image.
+#### 1. Geometry (Mesh)
+* **Vertices**: Points in 3D space that define the shape
+* **Edges**: Lines connecting vertices
+* **Faces**: Triangles or polygons formed by edges
+* **Topology**: How vertices, edges, and faces connect to form the model
+
+#### 2. Materials
+* **Properties that define how surfaces look and react to light**
+* Common attributes include:
+  * Base Color
+  * Metallic/Roughness
+  * Normal maps
+  * Opacity
+  * Reflectivity
+
+#### 3. Textures
+* **2D images mapped onto 3D surfaces**
+* Types include:
+  * Diffuse/Albedo maps (color)
+  * Normal maps (surface detail)
+  * Roughness maps (surface smoothness)
+  * Specular maps (highlight intensity)
+
+#### 4. UV Mapping
+* Process of projecting 2D textures onto 3D surfaces
+* Similar to "unwrapping" a 3D object into a flat pattern
+* Critical for proper texture application
+
+#### 5. Rigging (for animated models)
+* Skeletal structure for animation
+* Defines how model deforms when moved
+* Consists of:
+  * Bones/Joints
+  * Skin weights
+  * Animation data
+
+### Common 3D File Formats
+
+#### GLB/GLTF (.glb, .gltf)
+* Industry standard for web/mobile 3D
+* Efficient binary format
+* Supports:
+  * PBR materials
+  * Animations
+  * Skeletal data
+
+#### USDZ (.usdz)
+* Apple's AR format
+* Optimized for iOS/macOS
+* Self-contained archive
+* AR Quick Look compatible
+
+#### FBX (.fbx)
+* Industry standard for content creation
+* Supports complex animations
+* Commonly used in game development
+
+### 3D Model Quality Factors
+
+#### 1. Polygon Count
+* Higher count = more detail but larger file size
+* Optimization levels:
+  * High-poly (original model)
+  * Mid-poly (optimized for real-time)
+  * Low-poly (mobile/web)
+
+### Open Source Models Overview
+
+#### 1. TripoSR (Stability AI)
+* **Architecture**: Transformer-based feed-forward model with triplane representation
+* **Key Features**:
+  * Fast inference (< 0.5s on NVIDIA A100)
+  * Quality geometry reconstruction
+  * Efficient memory usage
+* **Technical Components**:
+  * Image Encoder: Vision transformer (DINOv1) for feature extraction
+  * Triplane Decoder: Converts features to 3D triplane representation
+  * Neural Radiance Field (NeRF): Final 3D reconstruction
+* **Innovation**:
+  * Feed-forward architecture (non-iterative, single-pass generation)
+  * Balances speed and quality for practical applications
+
+#### 2. Step1X-3D
+* **Architecture**: Two-stage VAE-DiT (Variational Autoencoder + Diffusion Transformer)
+* **Key Features**:
+  * High-fidelity texture generation
+  * Direct 2D-to-3D control transfer
+  * Support for complex materials and surface details
+  * Trained on 2M curated high-quality 3D assets
+* **Technical Components**:
+  * Stage 1: Hybrid VAE-DiT geometry generator (TSDF representations)
+  * Stage 2: Texture synthesis module for fine detail refinement
+  * Multi-modal conditioning for diverse input types
+* **Innovation**:
+  * Two-stage approach separates geometry and texture generation
+  * Curated dataset enables high quality results
+  * Efficient control transfer from 2D references to 3D outputs
+
+#### 3. Direct3D-S2
+* **Architecture**: Sparse volumetric VAE with Diffusion Transformer
+* **Key Features**:
+  * Gigascale 3D generation at 1024³ resolution
+  * 3.9× forward pass speedup, 9.6× backward pass speedup
+  * Trainable on only 8 GPUs at full resolution
+  * End-to-end geometry and texture coherence
+* **Technical Components**:
+  * Sparse SDF VAE (SS-VAE): Encoding/decoding of sparse volumetric data
+  * Diffusion Transformer (SS-DiT): Generation with Spatial Sparse Attention
+  * Unified sparse volumetric format across all stages
+* **Innovation**:
+  * Spatial Sparse Attention (SSA) mechanism for efficient processing
+  * Consistent sparse representation throughout pipeline
+  * Enables scale in 3D generation
+
+#### 4. Stable3DGen
+* **Architecture**: Two-stage Structured Latent (SLAT) with Rectified Flow Transformers
+* **Key Features**:
+  * Unified structured 3D latent representation
+  * Multiple output formats (Radiance Fields, 3D Gaussians, meshes)
+  * Supports up to 2B parameter models
+  * Trained on 500K diverse 3D assets
+  * Flexible editing and local 3D manipulation
+* **Technical Components**:
+  * Stage 1: Sparse structure generation using VAE and Rectified Flow Transformer
+  * Stage 2: Detail generation with dense multiview features
+  * Sparse voxel grid combined with vision foundation model features
+* **Innovation**:
+  * Sparse structures with powerful visual representations
+  * Modular decoders for diverse 3D output formats
 
 ## What is Amazon EKS (Elastic Kubernetes Service)
 [**Amazon EKS**](https://aws.amazon.com/eks/), is a managed service that makes it easy for you to deploy, run, manage and scale container based apps using Kubernetes on AWS, without installing and operating your own Kubernetes control plane or worker nodes. Amazon EKS clusters can scale to support thousands of containers, which makes it ideal for Generative AI and ML workloads, where you can tune and deploy LLMs on Amazon EKS. Amazon EKS serves as an effective orchestrator to help achieve rapid scale out and scale in that is required for Generative AI and ML workloads, optimal cost efficiency.
 
-## How to consume the Inference Service
-You can connect to the Inference Service using the **"Open WebUI"** application, which is designed to consume the OpenAI-compatible endpoint provided by the vLLM-hosted Mistral-7B-Instruct model that you will deploy in the workshop. The Open WebUI application allows users to interact with the LLM model through a chat-based interface. To use the Open WebUI application, simply deploy the application container, and connect to the WebUI URL that is provided and start chatting with the LLM model. The WebUI application will handle the communication with the VLLM-hosted Mistral-7B-Instruct model, providing a seamless user experience
+## Frontend to use the model inference
+You can connect to the Inference Service using the **WebUI** application, which is designed to [@Callie TO fill in]
 
 
 ## Storing and accessing your model and training data
-In this workshop the **Mistral-7B-Instruct** model is stored in an Amazon S3 bucket [**Amazon S3**](https://aws.amazon.com/s3/), which is linked to an  [**Amazon FSx for Lustre File system S3**](https://aws.amazon.com/fsx/lustre/). The vLLM container will consume the Mistral model data via the mounted Amazon FSx for Lustre instance for the Generative AI Chat application. Amazon FSx for Lustre is a fully managed service that provides a high-performance scalable file system, for workloads where speed matters, providing sub-millisecond latency, and scaling to TB/s of throughput and millions of IOPS. Amazon FSx also integrates with Amazon S3 (highly durable, available and scalable object store), making it easy for you to store, access and process vast amounts of cloud data with the Lustre high-performance file system.
-
-## Accelerating your Compute
- [**AWS Inferentia accelerators**](https://aws.amazon.com/machine-learning/inferentia/) are designed by AWS to deliver high performance at the lowest cost in Amazon EC2 for your deep learning (DL) and generative AI inference applications, where Inferentia2-based Amazon EC2 Inf2 instances are optimized to deploy increasingly complex models, such as large language models (LLM). [**AWS Neuron SDK**](https://aws.amazon.com/machine-learning/neuron/) is an SDK with a compiler, runtime, and profiling tools that unlocks high-performance and cost-effective deep learning (DL) acceleration. AWS Neuron SDK helps developers deploy models on the AWS Inferentia accelerators, where it integrates natively with popular frameworks, such as PyTorch and TensorFlow, so that you can continue to use your existing code and workflows and run on Inferentia accelerators.
+In this workshop the **TripoSR** model is stored in an Amazon S3 bucket [**Amazon S3**](https://aws.amazon.com/s3/), [[To Update]]

@@ -1,6 +1,6 @@
 variable "name" {
   type    = string
-  default = "3DPlayground"
+  default = "eks-3d-model-inference"
 }
 variable "region" {
   type    = string
@@ -40,6 +40,10 @@ data "aws_caller_identity" "current" {}
 
 data "aws_availability_zones" "available" {}
 
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
 terraform {
   required_version = ">= 1.5"
 
@@ -63,6 +67,10 @@ terraform {
     local = {
       source  = "hashicorp/local"
       version = "~> 2.5.2"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6.0"
     }
   }
 }
