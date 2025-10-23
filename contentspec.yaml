@@ -17,8 +17,8 @@ awsAccountConfig:
     - autoscaling.amazonaws.com
   ec2KeyPair: true
   regionConfiguration:
-    minAccessibleRegions: 2
-    maxAccessibleRegions: 2
+    minAccessibleRegions: 1
+    maxAccessibleRegions: 1
     deployableRegions:
       optional:
         #- us-east-2
