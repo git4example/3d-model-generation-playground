@@ -42,16 +42,16 @@ awsAccountConfig:
         #- eu-west-3
         #- eu-south-2
         #- eu-north-1
-    accessibleRegions:
+    # accessibleRegions:
 
       # [OPTIONAL] Set of regions an event's provisioned account must have access to.
-      required:
-        - us-east-2
+      # required:
+      #   - us-east-2
         #- us-west-2
 
       # [OPTIONAL] Set of regions that should be accessible by an event's provisioned account as a recommendation.
-      recommended:
-        - us-east-2
+      # recommended:
+      #   - us-east-2
         # - us-east-1
         # - us-west-1
         # - us-west-2
@@ -60,8 +60,8 @@ awsAccountConfig:
         # - eu-west-1
 
       # [OPTIONAL] Set of regions an event's cloudformation templates could be deployed to as optional.
-      optional:
-        - us-east-2
+      # optional:
+      #   - us-east-2
         # - us-east-1
         # - us-west-1
         # - us-west-2
@@ -75,7 +75,7 @@ awsAccountConfig:
 
 infrastructure:
   cloudformationTemplates:
-    - templateLocation: static/3DPlayground.yaml
+    - templateLocation: static/Inference3DModelPlayground.yaml
       label: Inference 3D Model Playground
       parameters:
         - templateParameter: Assets

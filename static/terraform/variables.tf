@@ -1,7 +1,8 @@
 variable "name" {
   type    = string
-  default = "eks-3d-model-inference"
+  default = "inference-3d-model-playground"
 }
+
 variable "region" {
   type    = string
   default = "us-west-2"
