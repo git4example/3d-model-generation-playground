@@ -2017,7 +2017,7 @@ Resources:
                 }
 
                 # Trap errors
-                trap 'handle_error ${LINENO} $?' ERR
+                trap 'handle_error $?' ERR
 
                 echo "Check if Terraform installed."
                 terraform --version || { echo "Terraform not found"; exit 1; }
