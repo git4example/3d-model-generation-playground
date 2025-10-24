@@ -2006,17 +2006,33 @@ Resources:
               runCommand:
               - !Sub |
                 #!/bin/bash
+                set -e
+                set -o pipefail
+
+                # Function to handle errors
+                handle_error() {
+                    echo "ERROR: Command failed at line $1"
+                    echo "Last command exit code: $2"
+                    exit 1
+                }
+
+                # Trap errors
+                trap 'handle_error ${LINENO} $?' ERR
+
                 echo "Check if Terraform installed."
-                terraform --version
+                terraform --version || { echo "Terraform not found"; exit 1; }
 
                 cd /home/${VSCodeUser}/environment/terraform/
-                terraform init
+                terraform init || { echo "Terraform init failed"; exit 1; }
 
-                # Create bucket before copy 
                 echo "Starting terraform apply @ $(date)"
-                terraform apply -var="region=${AWS::Region}" -auto-approve 
-                
+                terraform apply -var="region=${AWS::Region}" -auto-approve || {
+                    echo "ERROR: Terraform apply failed"
+                    terraform show -json | jq '.values.root_module.resources[] | select(.values.status == "error")'
+                    exit 1
+                }
                 echo "End terraform apply @ $(date)"
+
   
 
   # RunCreateFSxLBucketAndUploadModel:
