@@ -1,6 +1,6 @@
 variable "name" {
   type    = string
-  default = "inference-3d-model-playground"
+  default = "inference-3d-playground"
 }
 variable "region" {
   type    = string
