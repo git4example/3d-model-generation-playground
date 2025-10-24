@@ -146,7 +146,7 @@ resource "aws_cloudfront_distribution" "api" {
 # CORS Response Headers Policy
 resource "aws_cloudfront_response_headers_policy" "cors" {
   count   = local.create_cloudfront_setup ? 1 : 0
-  name    = "${var.name}-inference-cors-policy-${random_id.suffix.hex}"
+  name    = "3d-inference-cors-policy"
   comment = "CORS policy for 3D inference API"
 
   cors_config {

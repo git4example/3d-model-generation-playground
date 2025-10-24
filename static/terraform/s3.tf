@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "models" {
-  bucket_prefix = "${lower(var.name)}-models-"
+  bucket_prefix = "${var.name}-models-"
   force_destroy = false
 }
 
