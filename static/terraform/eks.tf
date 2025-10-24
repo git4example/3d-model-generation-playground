@@ -12,11 +12,30 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
+  # Add access entries for the current caller (EC2 instance role)
+  access_entries = {
+    ec2_instance = {
+      kubernetes_groups = []
+      principal_arn     = data.aws_caller_identity.current.arn
+      
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   cluster_compute_config = {
     enabled    = true
     node_pools = ["general-purpose"]
   }
 }
+
+# Data source to get the current caller identity (already defined in variables.tf)
 
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {

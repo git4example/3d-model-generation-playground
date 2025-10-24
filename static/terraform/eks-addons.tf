@@ -204,6 +204,11 @@ resource "kubernetes_namespace" "model_inference" {
   metadata {
     name = "3d-inferencing"
   }
+  
+  depends_on = [
+    module.eks,
+    module.eks_blueprints_addons_core
+  ]
 }
 
 resource "kubernetes_service_account" "model_inference" {
@@ -392,7 +397,21 @@ parameters:
 resource "null_resource" "delete_gp2_storageclass" {
   provisioner "local-exec" {
     command = <<-EOT
-      kubectl delete storageclass gp2 --ignore-not-found
+      # Update kubeconfig
+      aws --region ${var.region} eks update-kubeconfig --name ${module.eks.cluster_name}
+      
+      # Wait for cluster to be accessible with retries
+      for i in {1..10}; do
+        if kubectl get nodes > /dev/null 2>&1; then
+          echo "Cluster is accessible"
+          break
+        fi
+        echo "Waiting for cluster to be accessible... ($i/10)"
+        sleep 30
+      done
+      
+      # Delete the gp2 storage class (ignore errors)
+      kubectl delete storageclass gp2 --ignore-not-found || echo "Failed to delete gp2 storageclass, continuing..."
     EOT
   }
 
