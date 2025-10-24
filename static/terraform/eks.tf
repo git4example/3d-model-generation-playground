@@ -12,12 +12,13 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
-  # Add access entries for the current caller (EC2 instance role)
+  # Add access entries for the EC2 instance role
   access_entries = {
     ec2_instance = {
       kubernetes_groups = []
-      principal_arn     = data.aws_caller_identity.current.arn
-      
+      # Use the transformed role ARN
+      principal_arn = local.ec2_role_arn
+
       policy_associations = {
         admin = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -36,6 +37,17 @@ module "eks" {
 }
 
 # Data source to get the current caller identity (already defined in variables.tf)
+
+# Local variables for role ARN transformation
+locals {
+  # Extract role ARN from assumed role ARN
+  # Input:  arn:aws:sts::ACCOUNT:assumed-role/ROLE-NAME/SESSION
+  # Output: arn:aws:iam::ACCOUNT:role/ROLE-NAME
+  ec2_role_arn = replace(
+    replace(data.aws_caller_identity.current.arn, ":sts:", ":iam:"),
+    "/assumed-role/([^/]+)/.*/", "/role/$1"
+  )
+}
 
 resource "null_resource" "update_kubeconfig" {
   provisioner "local-exec" {
@@ -58,6 +70,17 @@ output "eks_update_kubeconfig" {
 
 output "eks_cluster_name" {
   value = module.eks.cluster_name
+}
+
+# Debug outputs for role ARN transformation
+output "debug_caller_identity_arn" {
+  description = "Original caller identity ARN (assumed role)"
+  value       = data.aws_caller_identity.current.arn
+}
+
+output "debug_ec2_role_arn" {
+  description = "Transformed EC2 role ARN for EKS access entry"
+  value       = local.ec2_role_arn
 }
 
 provider "kubernetes" {
