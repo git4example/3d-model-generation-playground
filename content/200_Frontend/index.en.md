@@ -3,93 +3,37 @@ title : "2. Exploring the Pre-Deployed Frontend UI"
 weight : 200
 ---
 
-## Module Overview
+## Workshop Experience: Frontend Exploration
 
-This module provides hands-on exploration of the pre-deployed web application interface. Participants will familiarize themselves with the complete 3D asset generation pipeline, from text prompts to interactive 3D models, experiencing the full capabilities of the workshop environment.
+In this module, you'll explore the pre-deployed web application that demonstrates the complete 3D asset generation pipeline. This hands-on experience will show you exactly what you'll be building throughout the workshop.
 
-## Module 2: Exploring the Pre-Deployed Frontend UI
+### What You'll Experience
 
-### Application Architecture Overview
+- **Live 3D Generation**: Watch text prompts transform into interactive 3D models
+- **Model Comparison**: Test different AI models side-by-side
+- **Real-time Interface**: Experience the responsive Next.js/React application
+- **Asset Management**: Download and organize generated 3D content
 
-The pre-deployed web application demonstrates a complete 3D asset generation pipeline with the following key components:
+### Hands-on Activities
 
-#### Frontend Interface
-- **Modern Web UI**: Built with Next.js and React for responsive user experience
-- **Real-time Generation**: Live progress tracking and result preview
-- **Model Selection**: Intuitive interface for choosing between different AI models
-- **Asset Management**: Built-in gallery for viewing and downloading generated assets
+1. **Navigate the Interface**: Explore the dashboard and available features
+2. **Create Text Prompts**: Write descriptions for gaming assets
+3. **Upload Images**: Prepare source images for 3D conversion
+4. **Generate 3D Models**: Create interactive 3D assets
+5. **Download Assets**: Export models in various formats (GLB, FBX, OBJ)
 
-#### Backend Services
-- **API Gateway**: Scalable endpoints for multiple 3D generation models
-- **Model Orchestration**: Intelligent routing between different AI services
-- **Asset Storage**: S3-based storage for generated 3D models and textures
-- **Processing Pipeline**: Automated workflow from text/image to 3D model
+### Technical Preview
 
-### Hands-on Exercise
+The frontend demonstrates:
+- **API Integration**: Scalable endpoints for multiple 3D generation models
+- **Real-time Updates**: Live progress tracking and status updates
+- **Asset Storage**: S3-based storage with CDN integration
+- **Model Routing**: Intelligent selection between different AI services
 
-#### 1. Interface Navigation
-- **Homepage Exploration**: Understanding the main dashboard and available features
-- **Model Selection**: Learning to choose between different generation models
-- **Parameter Configuration**: Adjusting generation settings for optimal results
-- **Asset Gallery**: Browsing previously generated content
+### What's Next
 
-#### 2. Text-to-Image Generation
-- **Prompt Creation**: Writing effective descriptions for gaming assets
-- **Style Selection**: Choosing artistic approaches and visual styles
-- **Quality Settings**: Configuring resolution and generation parameters
-- **Batch Processing**: Generating multiple variations efficiently
+After exploring the frontend, you'll dive into the technical details of image generation models and learn how to deploy your own 3D generation pipeline on AWS EKS.
 
-#### 3. Image-to-3D Conversion
-- **Image Upload**: Preparing and uploading source images
-- **Model Selection**: Choosing appropriate 3D generation models
-- **Parameter Tuning**: Optimizing settings for specific use cases
-- **Result Evaluation**: Assessing quality and making adjustments
+Ready to explore? Let's see the complete pipeline in action!
 
-#### 4. Asset Management
-- **Download Options**: Exporting models in various formats (GLB, FBX, OBJ)
-- **Quality Assessment**: Evaluating generated assets for production use
-- **Version Control**: Managing different iterations and improvements
-- **Integration Testing**: Preparing assets for downstream workflows
-
-### Technical Components Deep Dive
-
-#### Frontend Architecture
-- **Component Structure**: Modular React components for maintainability
-- **State Management**: Efficient handling of generation states and results
-- **Responsive Design**: Optimized for desktop and mobile experiences
-- **Performance Optimization**: Fast loading and smooth user interactions
-
-#### API Gateway Configuration
-- **Endpoint Management**: Organized routes for different model services
-- **Authentication**: Secure access control and user management
-- **Rate Limiting**: Preventing abuse and ensuring fair resource usage
-- **Monitoring**: Real-time tracking of API usage and performance
-
-#### Model Routing and Selection
-- **Intelligent Routing**: Automatic selection based on input type and requirements
-- **Load Balancing**: Distributing requests across available model instances
-- **Fallback Mechanisms**: Graceful handling of model unavailability
-- **Performance Optimization**: Routing to fastest available models
-
-#### Asset Storage and Retrieval
-- **S3 Integration**: Scalable storage for generated 3D models and textures
-- **Metadata Management**: Tracking generation parameters and model information
-- **Access Control**: Secure sharing and download capabilities
-- **CDN Integration**: Fast global delivery of generated assets
-
-### Key Learning Outcomes
-
-#### User Experience Design
-- **Intuitive Interface**: Understanding principles of effective AI tool design
-- **Workflow Optimization**: Streamlining the asset generation process
-- **Error Handling**: Graceful management of generation failures and edge cases
-- **Feedback Systems**: Providing clear progress indicators and result feedback
-
-#### Technical Integration
-- **API Design**: Best practices for AI model service integration
-- **Scalability Patterns**: Designing systems that can handle variable workloads
-- **Performance Monitoring**: Tracking and optimizing system performance
-- **Cost Management**: Understanding resource usage and optimization strategies
-
-![Frontend Interface](/static/images/frontend-interface.png)
-
+![Pre-Deployed Frontend Homepage](/static/images/homepage.png)

@@ -3,105 +3,32 @@ title : "3. AI Image Generation Models"
 weight : 300
 ---
 
-## Module Overview
+## Workshop Experience: Image Generation Deep Dive
 
-This module explores the pre-deployed web application's comprehensive image generation capabilities, showcasing how participants can create and enhance gaming assets through AI-powered image generation using both AWS native models and third-party integrations. The module covers both text-to-image and image-to-image generation workflows.
+In this module, you'll work with two powerful image generation models, learning their unique capabilities and when to use each one. You'll also explore advanced image-to-image processing techniques.
 
-## Module 3: AI Image Generation Models
+### What You'll Master
 
-### Exploring the Pre-Deployed Frontend UI
+- **Text-to-Image Generation**: Create gaming assets from descriptive prompts
+- **Image-to-Image Enhancement**: Modify and enhance existing images
+- **Model Selection**: Choose the right model for your specific use case
+- **Advanced Processing**: Apply masking, style transfer, and color modification
 
-The pre-deployed web application provides an intuitive interface for creating and enhancing gaming assets through AI-powered image generation. Participants will explore the complete pipeline from text prompts and existing images to high-quality enhanced images, experiencing the full capabilities of the workshop environment.
+### Available Models
 
-![Pre-Deployed Frontend Homepage](/static/images/homepage.png)
+- **Amazon Nova Canvas**: Native AWS model optimized for creative content generation
+- **Stable Diffusion 3.5 Large**: Advanced diffusion model via Amazon Bedrock
 
-### Application Features and User Experience
+### Hands-on Activities
 
-#### Text-to-Image Generation
+1. **Text Prompt Creation**: Write effective descriptions for gaming assets
+2. **Model Comparison**: Test both Nova Canvas and Stable Diffusion 3.5
+3. **Image Enhancement**: Upload existing images for modification
+4. **Style Transfer**: Apply different artistic styles and approaches
+5. **Quality Assessment**: Compare outputs and refine techniques
 
-**How It Works:**
-- Participants enter descriptive text prompts focusing on materials, colors, and artistic style
-- Two image generation models are available:
-  - **Amazon Nova Canvas**: Native AWS model optimized for creative content generation
-  - **Stable Diffusion 3.5 Large**: Advanced model by Stability AI available through Amazon Bedrock
+### Integration with 3D Pipeline
 
-#### Image-to-Image Enhancement
+The images you generate in this module will serve as input for the 3D model generation pipeline in the next module. You'll learn how to optimize your image generation for the best 3D conversion results.
 
-**Advanced Image Processing:**
-- Upload existing images for modification and enhancement
-- Apply masking to modify specific parts of images
-- Style transfer capabilities to change artistic approaches
-- Color modification and detail enhancement
-
-**Stability AI Integration:**
-- Leverages Stability AI's sophisticated image-to-image APIs
-- Users can add enhancement prompts to guide modifications
-- Seamless integration with the existing image generation pipeline
-- Using Stability Image and Recolor API for advanced processing
-
-#### Amazon Nova Canvas Integration
-- Native AWS model designed for creative workflows
-- Optimized for gaming asset generation
-- Seamless integration with AWS infrastructure
-- Cost-effective solution for high-volume generation
-
-#### Stable Diffusion 3.5 Large via Bedrock
-- State-of-the-art diffusion model
-- Superior quality for complex scenes and characters
-- Advanced prompt understanding capabilities
-- Professional-grade output suitable for production use
-
-### Hands-on Exercise
-
-#### Text Prompt Engineering
-- Learn effective prompt construction techniques
-- Explore different artistic styles and materials
-- Understand the impact of descriptive keywords
-- Practice with gaming-specific terminology
-
-#### Image Enhancement Techniques
-- Upload existing images for modification
-- Apply masking and selective editing
-- Test style transfer and color modification
-- Experiment with enhancement prompts
-
-#### Model Comparison and Selection
-- Compare outputs between Nova Canvas and Stable Diffusion 3.5
-- Understand when to use each model
-- Analyze quality vs. cost trade-offs
-- Test different prompt strategies
-
-### Key Implementation Steps
-
-1. **Access the Pre-Deployed Frontend**
-   - Navigate to the workshop web application
-   - Explore both text-to-image and image-to-image interfaces
-   - Understand the available model options
-
-2. **Text Prompt Creation**
-   - Enter descriptive prompts for gaming assets
-   - Experiment with different artistic styles
-   - Test material and color specifications
-
-3. **Image Enhancement Workflow**
-   - Upload existing images for modification
-   - Apply masking and selective editing techniques
-   - Test style transfer and color modification features
-   - Experiment with enhancement prompts
-
-4. **Model Selection and Configuration**
-   - Choose between Nova Canvas and Stable Diffusion 3.5
-   - Configure generation parameters for both workflows
-   - Set appropriate quality settings
-
-5. **Image Generation and Review**
-   - Generate images using both text-to-image and image-to-image workflows
-   - Compare quality and style differences
-   - Refine prompts and techniques based on results
-
-6. **Integration Testing**
-   - Test the generated images in the 3D pipeline
-   - Verify compatibility with downstream models
-   - Document best practices for both generation workflows
-
-![3D Model Generation Interface](/static/images/3dmodel.png)
+Ready to create amazing gaming assets? Let's dive into AI image generation!

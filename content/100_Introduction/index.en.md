@@ -3,80 +3,34 @@ title : "1. Introduction to 3D Model Generation on AWS"
 weight : 100
 ---
 
-## Module Overview
+## Workshop Overview
 
-In this workshop the **TripoSR** model is stored in an Amazon ECR... [[Lester to Update]]
+Welcome to the 3D Model Generation Playground! In this hands-on workshop, you'll build a complete pipeline for creating 3D models from text prompts and 2D images using AWS services and cutting-edge AI models.
 
+### What You'll Build
 
-## Module 1: Introduction to 3D Model Generation on AWS
+- **Complete 3D Generation Pipeline**: From text prompts to interactive 3D models
+- **Multi-Model Architecture**: Deploy and compare different AI models
+- **Scalable AWS Infrastructure**: EKS clusters with GPU acceleration
+- **Production-Ready Frontend**: Modern web interface for 3D asset generation
 
-### Overview
-- Introduction to text-to-image and image-to-3D workflows
-- AWS services powering the pipeline (Amazon Bedrock, EKS, S3)
-- Open-source models overview: TripoSR, Stable3DGen, Direct3D-S2
-- Workshop architecture and components
+### Workshop Experience
 
-### Key Concepts
-- Text-to-image generation using foundation models
-- Image-to-3D conversion techniques
-- Containerization of ML models
-- Scalable inference on Kubernetes
+You'll work with a pre-deployed web application that demonstrates the full pipeline, then dive deep into deploying your own models on AWS EKS. The workshop combines hands-on exploration with technical implementation.
 
-[[Replace image below]]
-![my-image](/static/images/my-image.png)
+### Key Technologies
 
+- **Amazon Bedrock**: Foundation models for image generation
+- **Amazon EKS**: Kubernetes platform for scalable model deployment  
+- **AWS S3**: Storage for generated 3D models and assets
+- **Open Source Models**: TripoSR, Stable3DGen, Direct3D-S2, Stability AI Fast 3D
 
+### Learning Path
 
----
+1. **Explore** the pre-deployed frontend interface
+2. **Generate** images using Amazon Nova Canvas and Stable Diffusion 3.5 Large
+3. **Deploy** 3D models on AWS EKS with GPU acceleration
+4. **Refine** assets using professional Blender techniques
+5. **Optimize** for production workflows
 
-### Action Items for Participants
-
-1. **Technical Implementation Plan**
-   - Document requirements for implementing a similar pipeline
-   - Identify integration points with existing systems
-   - Estimate resource requirements and costs
-
-2. **Model Evaluation Framework**
-   - Create evaluation criteria for comparing different 3D models
-   - Develop testing methodology for quality assurance
-   - Establish performance benchmarks for specific use cases
-
-3. **Workflow Integration Strategy**
-   - Map the 3D asset pipeline to current content creation workflows
-   - Identify bottlenecks that can be addressed with this technology
-   - Plan for artist/developer training and adoption
-
-4. **Proof of Concept Development**
-   - Define scope for an initial implementation
-   - Identify test cases specific to industry needs
-   - Create timeline for POC deployment
-
-5. **AWS Architecture Review**
-   - Schedule a follow-up architecture review session with AWS Solutions Architects
-   - Prepare specific questions about implementation details
-   - Discuss customizations for specific industry needs
-
-## Workshop Resources
-
-### Code Repositories
-- Workshop GitHub repository with sample code
-- Model-specific repositories:
-  - TripoSR: https://github.com/VAST-AI-Research/TripoSR
-  - Stable3DGen: https://github.com/Stable-X/Stable3DGen
-  - Direct3D-S2: https://github.com/DreamTechAI/Direct3D-S2
-
-### Documentation
-- Workshop guide (PDF)
-- AWS service documentation links
-- Model documentation and papers
-- Blender tutorials for 3D asset post-processing
-
-### AWS Resources
-- CloudFormation templates for infrastructure deployment
-- EKS cluster configuration examples
-- API Gateway configuration samples
-- Sample Lambda functions for model routing
-
-## Conclusion
-
-By the end of this workshop, participants will have hands-on experience building a complete 3D model creation pipeline using AWS services and open-source models. They will understand how to deploy and scale inference workloads on EKS, integrate multiple models with a frontend UI, and process the generated assets using Blender. This knowledge will enable them to democratize 3D content creation and accelerate development cycles within their organizations.
+Ready to start? Let's explore the pre-deployed frontend to see what you'll be building!

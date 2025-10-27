@@ -3,88 +3,42 @@ title : "4. Image-to-3D Model Generation"
 weight : 400
 ---
 
-## Module Overview
+## Workshop Experience: 3D Model Generation Deep Dive
 
-This module explores the complete pipeline from 2D images to 3D models, showcasing multiple state-of-the-art models available through both API access and self-hosted deployment on AWS EKS. Participants will learn about different approaches to 3D generation, their trade-offs, and when to use each model.
+In this module, you'll work with multiple state-of-the-art 3D generation models, comparing their approaches and deploying your own models on AWS EKS. You'll experience the complete pipeline from 2D images to interactive 3D models.
 
-## Module 4: Image-to-3D Model Generation
+### What You'll Experience
 
-### Accessing 3D Models: API vs Self-Hosted
+- **Multiple 3D Models**: Test different approaches to 3D generation
+- **API vs Self-Hosted**: Compare managed services with self-deployed solutions
+- **Model Comparison**: Understand trade-offs between speed, quality, and cost
+- **AWS EKS Deployment**: Deploy and scale models on Kubernetes with GPU acceleration
 
-**API Access Models:**
-- Pre-deployed models accessible through managed services
-- Lower operational overhead and faster setup
-- Ideal for experimentation and prototyping
-- Managed scaling and maintenance
+### Available 3D Models
 
-**Self-Hosted Models on AWS EKS:**
-- Full control over model deployment and configuration
-- Custom optimization and fine-tuning capabilities
-- Cost-effective for high-volume usage
-- Integration with existing AWS infrastructure
+#### Pre-deployed Models (Ready to Use)
+- **Stability AI Fast 3D**: Generates 3D models in under 1 second with UV unwrapping
+- **Stable3DGen**: High-fidelity 3D geometry with normal bridging for production quality
 
-### 3D Model Options
+#### Workshop Deployment (You'll Deploy This)
+- **Direct3D-S2**: Highest quality with native 3D generation - you'll deploy this on AWS EKS
+- **Texture Enhancement**: Advanced texture painting and detail enhancement models
 
-This module covers four different approaches to 3D model generation, each with distinct advantages and use cases:
+### Hands-on Activities
 
-#### 4.1 Stability AI Fast 3D Model (Pre-deployed)
-- **Speed**: Generates 3D models in under 1 second
-- **Best For**: Rapid prototyping and real-time applications
-- **Key Feature**: Built-in UV unwrapping and material parameters
+1. **Pre-deployed Model Testing**: Test Stability AI Fast 3D and Stable3DGen through the frontend
+2. **Direct3D-S2 Deployment**: Deploy and configure Direct3D-S2 on AWS EKS with GPU support
+3. **Model Comparison**: Test all models with the same input images
+4. **Performance Analysis**: Benchmark generation speed, quality, and resource usage
+5. **Integration Testing**: Experience the complete pipeline from image to 3D model
 
-#### 4.2 Stable3DGen (Pre-deployed)
-- **Quality**: High-fidelity 3D geometry generation
-- **Best For**: Production-quality assets and commercial applications
-- **Key Feature**: Normal bridging for improved geometry
+### Technical Skills You'll Gain
 
-#### 4.3 Direct3D-S2 (Self-deploy through lab)
-- **Quality**: Highest quality with native 3D generation
-- **Best For**: Research applications and high-quality content creation
-- **Key Feature**: Full control over deployment and configuration
+- **Containerization**: Package Direct3D-S2 model for Kubernetes deployment
+- **GPU Management**: Configure NVIDIA GPU resources for optimal performance
+- **EKS Deployment**: Deploy and scale models on Amazon EKS with GPU acceleration
+- **ALB Configuration**: Set up Application Load Balancer routing for model access
 
-#### 4.4 Texture Models (Optional)
-- **Enhancement**: Advanced texture painting and detail enhancement
-- **Best For**: Final asset polishing and texture refinement
-- **Key Feature**: Works with all 3D models for enhancement
+![3D Asset Generated](/static/images/3d-asset-generated.png)
 
-#### 4.5 Framework to Model Comparison
-- **Analysis**: Comprehensive comparison of all models
-- **Best For**: Making informed decisions about model selection
-- **Key Feature**: Detailed performance and cost analysis
-
-### Hands-on Exercise
-
-#### Model Comparison and Selection
-- Test each model with the same input images
-- Compare output quality, generation speed, and resource usage
-- Understand trade-offs between speed and quality
-- Document optimal use cases for each model
-
-#### Self-Hosting Direct3D-S2
-- Deploy Direct3D-S2 on AWS EKS cluster
-- Configure GPU resources and scaling
-- Set up API endpoints and monitoring
-- Test integration with the frontend
-
-1. **Pre-deployed Model Testing**
-   - Access Stability AI Fast 3D and Stable3DGen APIs
-   - Generate 3D models from sample images
-   - Compare output quality and generation time
-
-2. **Direct3D-S2 Deployment**
-   - Containerize the Direct3D-S2 model
-   - Create Kubernetes deployment manifests
-   - Deploy to EKS cluster with GPU support
-   - Configure API endpoints and load balancing
-
-3. **Model Integration**
-   - Update frontend to support multiple 3D models
-   - Implement model selection interface
-   - Test end-to-end workflows
-
-4. **Performance Analysis**
-   - Benchmark generation speed and quality
-   - Analyze resource consumption
-   - Document cost implications
-
-![3D Model Generation Pipeline](/static/images/3d-generation-pipeline.png)
+Ready to transform 2D images into 3D models? Let's explore the world of AI-powered 3D generation!
