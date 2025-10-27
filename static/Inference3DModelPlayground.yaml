@@ -1952,11 +1952,12 @@ Resources:
                   ASSET_BUCKET=$(echo $ASSET_BUCKET | sed 's/\/assets\///')
                   ASSET_BUCKET=$ASSET_BUCKET/static
                   aws s3 sync $ASSET_BUCKET/terraform /home/${VSCodeUser}/environment/terraform --delete
-                  aws s3 sync $ASSET_BUCKET/eks /home/${VSCodeUser}/environment/eks --delete
+                  aws s3 sync $ASSET_BUCKET/backend /home/${VSCodeUser}/environment/backend --delete
+                  aws s3 sync $ASSET_BUCKET/frontend /home/${VSCodeUser}/environment/frontend --delete
                   aws s3 sync $ASSET_BUCKET/scripts /home/${VSCodeUser}/environment/scripts --delete
                   chown -R ${VSCodeUser}:${VSCodeUser} /home/${VSCodeUser}/environment
                   # aws s3 sync $ASSET_BUCKET/download /home/${VSCodeUser}/environment/download --delete
-                  # aws s3 sync $ASSET_BUCKET/scripts /home/${VSCodeUser}/environment/scripts --delete
+                  
 
           - action: aws:runShellScript
             name: Installs5cmd
