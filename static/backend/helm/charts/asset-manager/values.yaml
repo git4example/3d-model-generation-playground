@@ -1,0 +1,11 @@
+image:
+  repository: ""
+  tag: "latest"
+
+env:
+  s3Bucket: ""
+  dynamodbTable: ""
+  awsRegion: "us-west-2"
+
+ingress:
+  host: ""

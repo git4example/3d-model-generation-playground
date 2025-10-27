@@ -46,7 +46,7 @@ When you first time copy-paste a command on VSCode IDE, your browser may ask you
 
 - Set the Amazon EKS cluster variables :
 
-::code[export CLUSTER_NAME=eksworkshop]{language=bash showLineNumbers=false showCopyAction=true}
+::code[export CLUSTER_NAME=inference-3d-playground]{language=bash showLineNumbers=false showCopyAction=true}
 
 
 - Check if region and cluster names are set correctly

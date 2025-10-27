@@ -1,0 +1,47 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: triposr
+
+build:
+  artifacts:
+  - image: triposr-model
+    context: ../..
+    docker:
+      dockerfile: models/triposr/Dockerfile
+    sync:
+      manual:
+      - src: 'models/triposr/main.py'
+        dest: /app/
+      - src: 'models/triposr/inference.py'
+        dest: /app/
+      - src: 'models/triposr/cat.jpg'
+        dest: /app/
+      - src: 'shared/**/*.py'
+        dest: /app/shared/
+  local:
+    useBuildkit: true
+
+deploy:
+  helm:
+    releases:
+    - name: triposr
+      chartPath: ../../helm/charts/triposr
+      namespace: 3d-inferencing
+      createNamespace: true
+      valuesFiles:
+      - ../../helm/charts/triposr/values.yaml
+      setValueTemplates:
+        image.repository: "{{.IMAGE_REPO}}"
+        image.tag: "{{.IMAGE_TAG}}"
+      setValues:
+        env.s3Bucket: "eks-3d-model-inference-models-20251015064507256400000004"
+        env.dynamodbTable: "eks-3d-model-inference-jobs"
+        env.awsRegion: "us-west-2"
+
+portForward:
+- resourceType: service
+  resourceName: triposr-service
+  namespace: 3d-inferencing
+  port: 8000
+  localPort: 8000

@@ -1,0 +1,12 @@
+image:
+  repository: ""
+  tag: "latest"
+
+env:
+  rootPath: "/stable3dgen"
+  s3Bucket: ""
+  dynamodbTable: ""
+  awsRegion: "us-west-2"
+
+ingress:
+  host: ""

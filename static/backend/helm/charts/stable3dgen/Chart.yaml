@@ -1,0 +1,12 @@
+apiVersion: v2
+name: stable3dgen
+description: Stable3DGen - High-fidelity 3D generation from images via normal bridging
+type: application
+version: 0.1.0
+appVersion: "1.0"
+keywords:
+  - stable3dgen
+  - hi3dgen
+  - 3d-generation
+  - ai
+  - machine-learning

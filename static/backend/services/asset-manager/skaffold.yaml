@@ -1,0 +1,39 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: asset-manager
+build:
+  artifacts:
+    - image: asset-manager
+      context: ../..
+      docker:
+        dockerfile: services/asset-manager/Dockerfile
+      sync:
+        manual:
+        - src: 'services/asset-manager/main.py'
+          dest: /app/
+        - src: 'shared/**/*.py'
+          dest: /app/shared/
+  local:
+    useBuildkit: true
+deploy:
+  helm:
+    releases:
+      - name: asset-manager
+        chartPath: ../../helm/charts/asset-manager
+        namespace: 3d-inferencing
+        createNamespace: true
+        valuesFiles:
+          - ../../helm/charts/asset-manager/values.yaml
+        setValueTemplates:
+          image.repository: "{{.IMAGE_REPO}}"
+          image.tag: "{{.IMAGE_TAG}}"
+        setValues:
+          env.s3Bucket: "eks-3d-model-inference-models-20251015064507256400000004"
+          env.dynamodbTable: "eks-3d-model-inference-jobs"
+          env.awsRegion: "us-west-2"
+portForward:
+  - resourceType: service
+    resourceName: asset-manager-service
+    port: 8000
+    localPort: 8003

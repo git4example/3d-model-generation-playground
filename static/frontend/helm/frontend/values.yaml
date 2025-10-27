@@ -1,0 +1,17 @@
+image:
+  repository: ""
+  tag: "latest"
+
+env:
+  nodeEnv: "production"
+  port: "3000"
+  # Configurable service URLs (no hardcoding)
+  triposrServiceUrl: "http://triposr-service.3d-inferencing.svc.cluster.local:8000"
+  stable3dgenServiceUrl: "http://stable3dgen-service.3d-inferencing.svc.cluster.local:8000"
+  direct3ds2ServiceUrl: "http://direct3d-s2-service.3d-inferencing.svc.cluster.local:8000"
+  assetManagerServiceUrl: "http://asset-manager-service.3d-inferencing.svc.cluster.local:8000"
+  # Environment configuration
+  k8sNamespace: "3d-inferencing"
+  servicePort: "8000"
+  # CloudFront URL for client-side API calls
+  nextPublicApiBaseUrl: ""

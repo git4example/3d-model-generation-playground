@@ -1,0 +1,49 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: direct3d-s2
+
+build:
+  artifacts:
+  - image: direct3d-s2-model
+    context: ../..
+    docker:
+      dockerfile: models/direct3d-s2/Dockerfile
+    sync:
+      manual:
+      - src: 'models/direct3d-s2/Direct3D-S2/**/*'
+        dest: /tmp/direct3d-s2/
+      - src: 'models/direct3d-s2/main.py'
+        dest: /app/
+      - src: 'models/direct3d-s2/inference.py'
+        dest: /app/
+      - src: 'models/direct3d-s2/cat.jpg'
+        dest: /app/
+      - src: 'shared/**/*.py'
+        dest: /app/shared/
+  local:
+    useBuildkit: true
+
+deploy:
+  helm:
+    releases:
+    - name: direct3d-s2
+      chartPath: ../../helm/charts/direct3d-s2
+      namespace: 3d-inferencing
+      createNamespace: true
+      valuesFiles:
+      - ../../helm/charts/direct3d-s2/values.yaml
+      setValueTemplates:
+        image.repository: "{{.IMAGE_REPO}}"
+        image.tag: "{{.IMAGE_TAG}}"
+      setValues:
+        env.s3Bucket: "eks-3d-model-inference-models-20251015064507256400000004"
+        env.dynamodbTable: "eks-3d-model-inference-jobs"
+        env.awsRegion: "us-west-2"
+
+portForward:
+- resourceType: service
+  resourceName: direct3d-s2-service
+  namespace: 3d-inferencing
+  port: 8000
+  localPort: 8002

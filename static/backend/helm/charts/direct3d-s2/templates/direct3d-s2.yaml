@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: direct3d-s2
+  namespace: 3d-inferencing
+  labels:
+    app: direct3d-s2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: direct3d-s2
+  template:
+    metadata:
+      labels:
+        app: direct3d-s2
+    spec:
+      serviceAccountName: 3d-model-sa
+      nodeSelector:
+        node.kubernetes.io/instance-type: g5.2xlarge
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: model
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ROOT_PATH
+          value: {{ .Values.env.rootPath | quote }}
+        - name: S3_BUCKET
+          value: {{ .Values.env.s3Bucket | quote }}
+        - name: DYNAMODB_TABLE_NAME
+          value: {{ .Values.env.dynamodbTable | quote }}
+        - name: AWS_REGION
+          value: {{ .Values.env.awsRegion | quote }}
+        - name: TORCH_HOME
+          value: "/app/.cache/torch"
+        - name: HF_HOME
+          value: "/app/.cache/huggingface"
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: 'expandable_segments:True'
+        resources:
+          requests:
+            memory: 24Gi
+            cpu: "4"
+            nvidia.com/gpu: 1
+          limits:
+            memory: 30Gi
+            cpu: "6"
+            nvidia.com/gpu: 1
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 30
+          # Total: 10 + (30 × 10) = 310s = ~5 min buffer for startup
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 60
+          timeoutSeconds: 30
+          failureThreshold: 5
+          # Allow up to 5 minutes of unresponsiveness during inference (60s × 5 = 300s)
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+          # Mark unready during long inference but don't kill the pod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: direct3d-s2-service
+  namespace: 3d-inferencing
+  labels:
+    app: direct3d-s2
+spec:
+  type: ClusterIP
+  selector:
+    app: direct3d-s2
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http

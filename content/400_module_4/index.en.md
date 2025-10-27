@@ -1,0 +1,31 @@
+---
+title : "4. Integrating Stable3DGen with the Frontend"
+weight : 400
+---
+
+## Module Overview
+
+## Module 4: Integrating Stable3DGen with the Frontend
+
+### Overview of Stable3DGen
+- Introduction to Stable3DGen capabilities and architecture
+- GitHub repository: https://github.com/Stable-X/Stable3DGen
+- Model strengths and use cases
+
+### Hands-on Exercise
+- Containerize the Stable3DGen model
+- Deploy to EKS cluster
+- Configure API endpoints
+- Integrate with the frontend UI
+- Test end-to-end workflow
+
+### Key Implementation Steps
+1. Build Docker container for Stable3DGen
+2. Create Kubernetes deployment manifests
+3. Deploy to EKS cluster
+4. Configure API Gateway routes
+5. Update frontend to support the new model
+6. Test the integration
+
+[[Replace image below]]
+![my-image](/static/images/my-image.png)

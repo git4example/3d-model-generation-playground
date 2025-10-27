@@ -1,0 +1,11 @@
+apiVersion: v2
+name: triposr
+description: TripoSR 3D reconstruction model inference service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - triposr
+  - 3d-reconstruction
+  - gpu

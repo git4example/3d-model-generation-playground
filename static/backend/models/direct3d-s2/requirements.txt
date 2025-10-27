@@ -1,0 +1,45 @@
+# Core ML frameworks - PyTorch 2.5.1 required for Direct3D-S2
+# Install with: pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1
+torchvision==0.20.1
+
+# TorchSparse - installed locally from third_party/torchsparse (see Dockerfile)
+# Using y4my4m's proven method: python setup.py install
+
+# FastAPI server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# AWS SDK
+boto3==1.34.10
+
+# Direct3D-S2 core dependencies
+scikit-image
+trimesh
+omegaconf
+tqdm
+huggingface_hub
+einops
+numpy
+transformers==4.40.2
+diffusers
+triton==3.1.0
+# flash-attn - installed separately as pre-built wheel (see Dockerfile)
+pymeshfix
+git+https://github.com/EasternJournalist/utils3d.git#egg=utils3d
+pyvista
+igraph
+timm
+kornia
+xformers
+
+# Direct3D-S2 package - install from HuggingFace
+# This will be installed via: pip install git+https://github.com/DreamTechAI/Direct3D-S2.git
+
+# Image processing
+pillow
+opencv-python
+
+# Additional utilities
+requests

@@ -1,0 +1,43 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: frontend
+
+build:
+  artifacts:
+  - image: frontend
+    context: .
+    docker:
+      dockerfile: Dockerfile
+    sync:
+      manual:
+      - src: 'src/**/*.{js,jsx,ts,tsx,css,json}'
+        dest: /app/src/
+      - src: 'public/**/*'
+        dest: /app/public/
+      - src: 'package.json'
+        dest: /app/
+  local:
+    useBuildkit: true
+
+deploy:
+  helm:
+    releases:
+    - name: frontend
+      chartPath: helm/frontend
+      namespace: 3d-inferencing
+      createNamespace: true
+      valuesFiles:
+      - helm/frontend/values.yaml
+      setValueTemplates:
+        image.repository: "{{.IMAGE_REPO}}"
+        image.tag: "{{.IMAGE_TAG}}"
+      setValues:
+        env.publicApiBaseUrl: "https://d208wm4mktkewl.cloudfront.net"  # This will be updated by deploy script
+
+portForward:
+- resourceType: service
+  resourceName: frontend-service
+  namespace: 3d-inferencing
+  port: 3000
+  localPort: 3000

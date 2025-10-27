@@ -1,0 +1,17 @@
+apiVersion: v2
+name: direct3d-s2
+description: Helm chart for Direct3D-S2 model inference service
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+- direct3d-s2
+- 3d-generation
+- spatial-sparse-attention
+- gigascale
+- inference
+- machine-learning
+
+home: https://neural4d.com/research/direct3d-s2
+sources:
+- https://github.com/DreamTechAI/Direct3D-S2

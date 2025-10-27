@@ -1,0 +1,12 @@
+image:
+  repository: ""
+  tag: "latest"
+
+env:
+  rootPath: "/triposr"
+  s3Bucket: ""
+  dynamodbTable: ""
+  awsRegion: "us-west-2"
+
+ingress:
+  host: ""

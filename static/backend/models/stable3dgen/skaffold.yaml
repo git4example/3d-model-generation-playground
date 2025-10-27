@@ -1,0 +1,45 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: stable3dgen
+
+build:
+  artifacts:
+  - image: stable3dgen-model
+    context: ../..
+    docker:
+      dockerfile: models/stable3dgen/Dockerfile
+    sync:
+      manual:
+      - src: 'models/stable3dgen/main.py'
+        dest: /app/
+      - src: 'models/stable3dgen/inference.py'
+        dest: /app/
+      - src: 'shared/**/*.py'
+        dest: /app/shared/
+  local:
+    useBuildkit: true
+
+deploy:
+  helm:
+    releases:
+    - name: stable3dgen
+      chartPath: ../../helm/charts/stable3dgen
+      namespace: 3d-inferencing
+      createNamespace: true
+      valuesFiles:
+      - ../../helm/charts/stable3dgen/values.yaml
+      setValueTemplates:
+        image.repository: "{{.IMAGE_REPO}}"
+        image.tag: "{{.IMAGE_TAG}}"
+      setValues:
+        env.s3Bucket: "eks-3d-model-inference-models-20251015064507256400000004"
+        env.dynamodbTable: "eks-3d-model-inference-jobs"
+        env.awsRegion: "us-west-2"
+
+portForward:
+- resourceType: service
+  resourceName: stable3dgen-service
+  namespace: 3d-inferencing
+  port: 8000
+  localPort: 8001

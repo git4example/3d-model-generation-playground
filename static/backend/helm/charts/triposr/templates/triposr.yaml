@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: triposr
+  namespace: 3d-inferencing
+  labels:
+    app: triposr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: triposr
+  template:
+    metadata:
+      labels:
+        app: triposr
+    spec:
+      serviceAccountName: 3d-model-sa
+      nodeSelector:
+        node.kubernetes.io/instance-type: g4dn.4xlarge
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: model
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        env:
+        - name: ROOT_PATH
+          value: {{ .Values.env.rootPath | quote }}
+        - name: TRIPOSR_CHUNK_SIZE
+          value: "8192"
+        - name: S3_BUCKET
+          value: {{ .Values.env.s3Bucket | quote }}
+        - name: DYNAMODB_TABLE_NAME
+          value: {{ .Values.env.dynamodbTable | quote }}
+        - name: AWS_REGION
+          value: {{ .Values.env.awsRegion | quote }}
+        resources:
+          requests:
+            memory: 16Gi
+            cpu: "4"
+            nvidia.com/gpu: 1
+          limits:
+            memory: 20Gi
+            cpu: "8"
+            nvidia.com/gpu: 1
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: triposr-service
+  namespace: 3d-inferencing
+  labels:
+    app: triposr
+spec:
+  type: ClusterIP
+  selector:
+    app: triposr
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
