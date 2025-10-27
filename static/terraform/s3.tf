@@ -20,6 +20,18 @@ resource "aws_s3_bucket_versioning" "models" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "models" {
+  bucket = aws_s3_bucket.models.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3600
+  }
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "models" {
   bucket = aws_s3_bucket.models.id
 
@@ -45,4 +57,14 @@ output "s3_bucket_name" {
 output "s3_bucket_region" {
   description = "S3 bucket region"
   value       = aws_s3_bucket.models.region
+}
+
+output "s3_images_prefix" {
+  description = "S3 prefix for uploaded images"
+  value       = "images/"
+}
+
+output "s3_models_prefix" {
+  description = "S3 prefix for generated models"
+  value       = "models/"
 }

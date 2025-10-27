@@ -375,46 +375,6 @@ module "eks_blueprints_addons_core" {
   depends_on = [kubectl_manifest.karpenter_nodepool_default]
 }
 
-# Create IngressClassParams for ALB
-resource "kubectl_manifest" "ingressclass_params_alb" {
-  yaml_body = <<-YAML
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: IngressClassParams
-metadata:
-  name: alb
-spec:
-  scheme: internet-facing
-  ipAddressType: ipv4
-  tags:
-    Project: 3d-inference
-  YAML
-
-  depends_on = [module.eks_blueprints_addons_core]
-}
-
-# Create IngressClass for ALB
-resource "kubectl_manifest" "ingressclass_internet_facing_alb" {
-  yaml_body = <<-YAML
-apiVersion: networking.k8s.io/v1
-kind: IngressClass
-metadata:
-  name: alb
-  annotations:
-    ingressclass.kubernetes.io/is-default-class: "true"
-spec:
-  controller: ingress.k8s.aws/alb
-  parameters:
-    apiGroup: elbv2.k8s.aws
-    kind: IngressClassParams
-    name: internet-facing-alb-params
-  YAML
-
-  depends_on = [
-    module.eks_blueprints_addons_core,
-    kubectl_manifest.ingressclass_params_alb
-  ]
-}
-
 resource "kubectl_manifest" "storageclass_ebs" {
   yaml_body = <<-YAML
 apiVersion: storage.k8s.io/v1

@@ -24,6 +24,7 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '10'
     alb.ingress.kubernetes.io/healthy-threshold-count: '2'
     alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
 spec:
   ingressClassName: internet-facing-alb
   rules:
@@ -50,6 +51,20 @@ spec:
             name: direct3d-s2-service
             port:
               number: 8000
+      - path: /asset-manager
+        pathType: Prefix
+        backend:
+          service:
+            name: asset-manager-service
+            port:
+              number: 8000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 3000
   YAML
 
   depends_on = [
@@ -93,10 +108,10 @@ resource "aws_cloudfront_distribution" "api" {
     origin_id   = "k8s-alb-origin"
     
     custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
+      http_port                = 80
+      https_port               = 443
+      origin_protocol_policy   = "http-only"
+      origin_ssl_protocols     = ["TLSv1.2"]
     }
   }
 

@@ -13,22 +13,22 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   # Add access entries for the EC2 instance role
-  access_entries = {
-    ec2_instance = {
-      kubernetes_groups = []
-      # Use the transformed role ARN
-      principal_arn = local.ec2_role_arn
+  # access_entries = {
+  #   ec2_instance = {
+  #     kubernetes_groups = []
+  #     # Use the transformed role ARN
+  #     principal_arn = local.ec2_role_arn
 
-      policy_associations = {
-        admin = {
-          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = {
-            type = "cluster"
-          }
-        }
-      }
-    }
-  }
+  #     policy_associations = {
+  #       admin = {
+  #         policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  #         access_scope = {
+  #           type = "cluster"
+  #         }
+  #       }
+  #     }
+  #   }
+  # }
 
   cluster_compute_config = {
     enabled    = true
