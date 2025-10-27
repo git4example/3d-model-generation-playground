@@ -1,6 +1,6 @@
 ---
 title: "Level Up Your Asset Pipeline: AI-Powered 3D Model Generation at Scale"
-weight: 0
+weight: 10
 ---
 
 In this workshop you will learn how to generate 3D models from 2D images or from text-to-2D-to-3D using Generative AI and NVIDIA GPUs on AWS, using an open source Foundation Models, deploy and scale image-to-3D model inference using AWS compute services to build a scalable architecture for 3D asset generation and management with the following AWS services stack:
