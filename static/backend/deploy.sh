@@ -4,6 +4,7 @@ set -e
 # Parse command line arguments
 SELECTED_SERVICES=()
 AUTO_APPROVE=false
+TAG=""
 
 # Show examples if no arguments provided
 if [ $# -eq 0 ]; then
@@ -52,6 +53,7 @@ if [ $# -eq 0 ]; then
     echo "Options:"
     echo "  --all              Deploy all services"
     echo "  --services <list>  Deploy specific services (comma-separated)"
+    echo "  --tag <tag>        Image tag to use (default: git commit SHA or timestamp)"
     echo "  --yes, -y          Skip confirmation prompts (auto-approve)"
     echo "  --help             Show detailed help with more information"
     echo ""
@@ -68,6 +70,11 @@ while [[ $# -gt 0 ]]; do
             IFS=',' read -ra SELECTED_SERVICES <<< "$1"
             shift
             ;;
+        --tag)
+            shift
+            TAG="$1"
+            shift
+            ;;
         --yes|-y)
             AUTO_APPROVE=true
             shift
@@ -79,6 +86,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --all              Deploy all services (non-interactive)"
             echo "  --services <list>  Deploy specific services (comma-separated)"
             echo "                     Example: --services triposr,frontend"
+            echo "  --tag <tag>        Image tag to use (default: git commit SHA or timestamp)"
             echo "  --yes, -y          Skip confirmation prompts (auto-approve)"
             echo "  --help             Show this help message"
             echo ""
@@ -403,13 +411,17 @@ if [ -z "$EKS_CLUSTER" ]; then
     exit 1
 fi
 
-# Generate version tag from git commit
-if git rev-parse --git-dir > /dev/null 2>&1; then
-    TAG=$(git rev-parse --short HEAD)
-    echo "Using git commit SHA as tag: $TAG"
+# Generate version tag from git commit (if not provided)
+if [ -z "$TAG" ]; then
+    if git rev-parse --git-dir > /dev/null 2>&1; then
+        TAG=$(git rev-parse --short HEAD)
+        echo "Auto-generated tag from git commit SHA: $TAG"
+    else
+        TAG=$(date +%Y%m%d-%H%M%S)
+        echo "Auto-generated tag from timestamp: $TAG"
+    fi
 else
-    TAG=$(date +%Y%m%d-%H%M%S)
-    echo "Git not available, using timestamp as tag: $TAG"
+    echo "Using provided tag: $TAG"
 fi
 
 echo ""
