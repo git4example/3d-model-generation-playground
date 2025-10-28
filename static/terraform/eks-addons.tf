@@ -372,7 +372,7 @@ module "eks_blueprints_addons_core" {
     ]
   }
 
-  depends_on = [kubectl_manifest.karpenter_nodepool_default]
+  # depends_on = [kubectl_manifest.karpenter_nodepool_default]
 }
 
 resource "kubectl_manifest" "storageclass_ebs" {
