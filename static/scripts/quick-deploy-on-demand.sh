@@ -11,7 +11,7 @@
 # - Tool installation (AWS CLI, Docker, Git, jq)
 # - Repository cloning
 # - S3 bucket creation and file upload
-# - Mistral model download and upload
+# - Workshop assets and code upload
 # - CloudFormation stack deployment
 # - Progress monitoring and validation
 #
@@ -305,9 +305,10 @@ else
 fi
 
 # Clone repository if not already present
-if [[ ! -d "genai-fsx-workshop-on-eks-auto" ]]; then
+if [[ ! -d "3d-model-generation-playground" ]]; then
     log_info "Cloning workshop repository..."
-    git clone https://github.com/git4example/genai-fsx-workshop-on-eks-auto.git
+    # git clone https://github.com/aws-samples/3d-model-generation-playground.git
+    git clone https://github.com/git4example/3d-model-generation-playground.git
 else
     log_info "Workshop repository already exists"
 fi
@@ -384,29 +385,23 @@ fi
 
 # Check if workshop files already exist in S3
 log_info "Checking for existing workshop files in S3..."
-if aws s3 ls s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ &>/dev/null; then
+if aws s3 ls s3://${ASSET_BUCKET}/3d-model-generation-playground/ &>/dev/null; then
     log_info "Workshop files already exist in S3 bucket"
     read -p "Do you want to update the workshop files? (y/N): " UPDATE_FILES
     
     if [[ "$UPDATE_FILES" =~ ^[Yy]$ ]]; then
         log_info "Updating workshop files in S3..."
-        aws s3 sync ./genai-fsx-workshop-on-eks-auto s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto
+        aws s3 sync ./3d-model-generation-playground s3://${ASSET_BUCKET}/3d-model-generation-playground
     else
         log_info "Skipping workshop files update"
     fi
 else
     log_info "Uploading workshop files to S3..."
-    aws s3 sync ./genai-fsx-workshop-on-eks-auto s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto
+    aws s3 sync ./3d-model-generation-playground s3://${ASSET_BUCKET}/3d-model-generation-playground
 fi
 
-# Download Mistral Model
-log_info "Downloading Mistral Model (this may take several minutes)..."
-if [[ ! -d "./work-dir/Mistral-7B-Instruct-v0.2" ]]; then
-    mkdir -p ./work-dir
-    sudo docker run -v ./work-dir/:/work-dir/ public.ecr.aws/parikshit/huggingface-cli:slim download "enghwa/neuron-mistral7bv0.2" --local-dir /work-dir/Mistral-7B-Instruct-v0.2
-else
-    log_info "Mistral model already downloaded"
-fi
+# Skip model download for 3D model generation playground
+log_info "Skipping model download - 3D models will be downloaded during workshop execution"
 
 # Get AWS credentials from instance metadata
 log_info "Retrieving AWS credentials from instance metadata..."
@@ -424,45 +419,22 @@ fi
 
 log_info "AWS credentials retrieved successfully"
 
-# Upload model to S3
-ASSET_BUCKET_PATH=genai-fsx-workshop-on-eks-auto
+# Set asset bucket path for 3D model generation playground
+ASSET_BUCKET_PATH=3d-model-generation-playground
 
-# Check if Mistral model already exists in S3
-log_info "Checking for existing Mistral model in S3..."
-if aws s3 ls s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/Mistral-7B-Instruct-v0.2/ &>/dev/null; then
-    log_info "Mistral model already exists in S3 bucket"
-    read -p "Do you want to re-upload the Mistral model? (y/N): " UPLOAD_MODEL
-    
-    if [[ "$UPLOAD_MODEL" =~ ^[Yy]$ ]]; then
-        log_info "Re-uploading Mistral model to S3 (this may take several minutes)..."
-        sudo docker run -e AWS_DEFAULT_REGION=$AWS_REGION \
-          -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-          -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-          -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-          -v ./work-dir/:/work-dir/  public.ecr.aws/parikshit/s5cmd cp /work-dir/Mistral-7B-Instruct-v0.2/ s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/Mistral-7B-Instruct-v0.2/
-    else
-        log_info "Skipping Mistral model upload"
-    fi
-else
-    log_info "Uploading Mistral model to S3 (this may take several minutes)..."
-    sudo docker run -e AWS_DEFAULT_REGION=$AWS_REGION \
-      -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-      -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-      -e AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN \
-      -v ./work-dir/:/work-dir/  public.ecr.aws/parikshit/s5cmd cp /work-dir/Mistral-7B-Instruct-v0.2/ s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/Mistral-7B-Instruct-v0.2/
-fi
+log_info "Workshop assets uploaded to S3 - 3D models will be downloaded during workshop execution"
 
 # Part 2 : Provision workshop resources
 log_info "Starting CloudFormation stack deployment..."
 
-STACK_NAME=GenAIFSXWorkshopOnEKS
-VSINSTANCE_NAME=VSCodeServerForEKS
+STACK_NAME=Inference3DModelPlayground
+VSINSTANCE_NAME=VSCodeServerFor3DModels
 ASSET_BUCKET_ZIPPATH=""
-ASSET_BUCKET_PATH=genai-fsx-workshop-on-eks-auto
+ASSET_BUCKET_PATH=3d-model-generation-playground
 
 # Validate CloudFormation template
 log_info "Validating CloudFormation template..."
-aws cloudformation validate-template --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/GenAIFSXWorkshopOnEKS.yaml > validate_cfn.txt
+aws cloudformation validate-template --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/Inference3DModelPlayground.yaml > validate_cfn.txt
 
 if [[ $? -eq 0 ]]; then
     log_info "CloudFormation template validation successful"
@@ -482,7 +454,7 @@ if check_cloudformation_stack "$STACK_NAME"; then
         log_info "Updating existing CloudFormation stack..."
         aws cloudformation update-stack \
           --stack-name ${STACK_NAME} \
-          --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/GenAIFSXWorkshopOnEKS.yaml \
+          --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/Inference3DModelPlayground.yaml \
           --region $AWS_REGION \
           --parameters \
           ParameterKey=VSCodeUser,ParameterValue=participant \
@@ -493,7 +465,7 @@ if check_cloudformation_stack "$STACK_NAME"; then
           ParameterKey=HomeFolder,ParameterValue=environment \
           ParameterKey=DevServerPort,ParameterValue=8081 \
           ParameterKey=AssetZipS3Path,ParameterValue=${ASSET_BUCKET_ZIPPATH} \
-          ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/ \
+          ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/static/ \
           --tags Key=auto-delete,Value=no \
           --capabilities CAPABILITY_NAMED_IAM
     else
@@ -503,7 +475,7 @@ else
     log_info "Creating CloudFormation stack..."
     aws cloudformation create-stack \
       --stack-name ${STACK_NAME} \
-      --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/GenAIFSXWorkshopOnEKS.yaml \
+      --template-url https://${ASSET_BUCKET}.s3.amazonaws.com/${ASSET_BUCKET_PATH}/static/Inference3DModelPlayground.yaml \
       --region $AWS_REGION \
       --parameters \
       ParameterKey=VSCodeUser,ParameterValue=participant \
@@ -514,7 +486,7 @@ else
       ParameterKey=HomeFolder,ParameterValue=environment \
       ParameterKey=DevServerPort,ParameterValue=8081 \
       ParameterKey=AssetZipS3Path,ParameterValue=${ASSET_BUCKET_ZIPPATH} \
-      ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/ \
+      ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/static/ \
       --tags Key=auto-delete,Value=no \
       --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM
@@ -527,7 +499,8 @@ echo "  - VPC and networking components (5-10 minutes)"
 echo "  - IAM roles and policies (2-5 minutes)"
 echo "  - EKS cluster (15-20 minutes)"
 echo "  - EKS node groups (10-15 minutes)"
-echo "  - FSx for Lustre file system (10-15 minutes)"
+echo "  - EFS file system (5-10 minutes)"
+echo "  - DynamoDB tables (2-5 minutes)"
 echo "  - Security groups and other resources (5-10 minutes)"
 log_info "Typical completion time: 30-45 minutes (max timeout: 60 minutes)"
 log_info "Progress updates will be shown every 5 minutes..."
@@ -576,7 +549,7 @@ echo ""
 log_info "Workshop Learning Path (Recommended):"
 echo "  - Navigate to the workshop documentation"
 echo "  - Follow each module step-by-step to understand the architecture"
-echo "  - Learn about EKS, FSx and how to deploy GenAI workloads"
+echo "  - Learn about EKS, 3D model generation, and containerized ML workloads"
 echo ""
 log_info "Quick Testing Path (only for testing):"
 echo "  - Use ./quick-deploy-sponsored.sh for rapid validation"

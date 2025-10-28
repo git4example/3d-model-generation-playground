@@ -37,12 +37,16 @@ Here's a broad IAM policy that you may includes all the required permissions for
                 "ec2:*",
                 "eks:*",
                 "iam:*",
-                "fsx:*",
+                "efs:*",
+                "dynamodb:*",
                 "cloudfront:*",
                 "lambda:*",
                 "ssm:*",
                 "logs:*",
-                "secretsmanager:*"
+                "secretsmanager:*",
+                "kms:*",
+                "acm:*",
+                "elasticloadbalancing:*"
             ],
             "Resource": "*"
         }
@@ -60,7 +64,8 @@ Run the automated deployment script :
 
 ```bash
 # Download and run the deployment script
-curl -O https://raw.githubusercontent.com/git4example/genai-fsx-workshop-on-eks-auto/mainline/static/scripts/quick-deploy-on-demand.sh
+# curl -O https://raw.githubusercontent.com/aws-samples/3d-model-generation-playground/main/static/scripts/quick-deploy-on-demand.sh
+curl -O https://raw.githubusercontent.com/git4example/3d-model-generation-playground/main/static/scripts/quick-deploy-on-demand.sh
 chmod +x quick-deploy-on-demand.sh
 ./quick-deploy-on-demand.sh
 ```
@@ -71,8 +76,9 @@ The workshop automated deployment script that handles all setup tasks including:
 - Tool installation (AWS CLI, Docker, Git, jq)
 - Repository cloning
 - S3 bucket creation and file uploads
-- Mistral-7B model download and upload
+- Workshop assets and code upload
 - CloudFormation stack deployment with monitoring
+- EKS cluster and infrastructure provisioning
 - Deployment validation and access information
 
 
@@ -87,7 +93,7 @@ When you're finished with the workshop, use the cleanup script to remove all res
 
 ```bash
 # Navigate to scripts directory (if not already there)
-cd genai-fsx-workshop-on-eks-auto/static/scripts
+cd 3d-model-generation-playground/static/scripts
 
 # Run cleanup script
 ./cleanup-on-demand.sh

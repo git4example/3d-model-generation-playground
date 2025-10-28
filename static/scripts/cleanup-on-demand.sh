@@ -212,7 +212,7 @@ main() {
     fi
     
     # Define resource names (same as in deployment script)
-    STACK_NAME=GenAIFSXWorkshopOnEKS
+    STACK_NAME=Inference3DModelPlayground
     
     # Ask user for confirmation
     echo ""
@@ -254,7 +254,7 @@ main() {
                 echo ""
                 log_info "Common issues and solutions:"
                 echo "  - EKS cluster: May need manual deletion if it has active workloads or stuck resources"
-                echo "  - FSx file system: Check for active mount targets or backup processes"
+                echo "  - EFS file system: Check for active mount targets or backup processes"
                 echo "  - VPC: Ensure no ENIs, NAT gateways, or other resources are still using it"
                 echo "  - Security groups: Check for circular dependencies or attached resources"
                 echo "  - IAM roles: May have active sessions or attached policies"
@@ -295,15 +295,15 @@ main() {
             MISTRAL_MODEL_EXISTS=false
             
             # Check for workshop folder
-            if aws s3 ls s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ &>/dev/null; then
+            if aws s3 ls s3://${ASSET_BUCKET}/3d-model-generation-playground/ &>/dev/null; then
                 WORKSHOP_FOLDER_EXISTS=true
-                log_info "✓ Found workshop folder: genai-fsx-workshop-on-eks-auto/"
+                log_info "✓ Found workshop folder: 3d-model-generation-playground/"
             fi
             
-            # Check for Mistral model
-            if aws s3 ls s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/assets/Mistral-7B-Instruct-v0.2/ &>/dev/null; then
+            # Check for 3D models (if any are stored)
+            if aws s3 ls s3://${ASSET_BUCKET}/3d-model-generation-playground/models/ &>/dev/null; then
                 MISTRAL_MODEL_EXISTS=true
-                log_info "✓ Found Mistral model: genai-fsx-workshop-on-eks-auto/assets/Mistral-7B-Instruct-v0.2/"
+                log_info "✓ Found 3D models: 3d-model-generation-playground/models/"
             fi
             
             if [[ "$WORKSHOP_FOLDER_EXISTS" == false && "$MISTRAL_MODEL_EXISTS" == false ]]; then
@@ -328,18 +328,18 @@ main() {
                 log_info "Workshop content cleanup options:"
                 
                 if [[ "$WORKSHOP_FOLDER_EXISTS" == true ]]; then
-                    echo "  1. Delete workshop folder only (genai-fsx-workshop-on-eks-auto/)"
+                    echo "  1. Delete workshop folder only (3d-model-generation-playground/)"
                 else
                     echo "  1. Delete workshop folder only (not found - unavailable)"
                 fi
                 
                 if [[ "$MISTRAL_MODEL_EXISTS" == true ]]; then
-                    echo "  2. Delete Mistral model only (~7GB)"
+                    echo "  2. Delete 3D models only"
                 else
-                    echo "  2. Delete Mistral model only (not found - unavailable)"
+                    echo "  2. Delete 3D models only (not found - unavailable)"
                 fi
                 
-                echo "  3. Delete all workshop content (folder + model)"
+                echo "  3. Delete all workshop content (folder + models)"
                 echo "  4. Delete entire bucket and all contents"
                 echo "  5. Keep everything (no deletion)"
                 echo ""
@@ -350,25 +350,25 @@ main() {
                     1)
                         if [[ "$WORKSHOP_FOLDER_EXISTS" == true ]]; then
                             log_info "Deleting workshop folder..."
-                            aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ --recursive --exclude "assets/Mistral-7B-Instruct-v0.2/*"
-                            log_info "Workshop folder deleted (Mistral model preserved)"
+                            aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/ --recursive --exclude "models/*"
+                            log_info "Workshop folder deleted (3D models preserved)"
                         else
                             log_warn "Workshop folder not found - nothing to delete"
                         fi
                         ;;
                     2)
                         if [[ "$MISTRAL_MODEL_EXISTS" == true ]]; then
-                            log_info "Deleting Mistral model (~7GB)..."
-                            aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/assets/Mistral-7B-Instruct-v0.2/ --recursive
-                            log_info "Mistral model deleted"
+                            log_info "Deleting 3D models..."
+                            aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/models/ --recursive
+                            log_info "3D models deleted"
                         else
-                            log_warn "Mistral model not found - nothing to delete"
+                            log_warn "3D models not found - nothing to delete"
                         fi
                         ;;
                     3)
                         if [[ "$WORKSHOP_FOLDER_EXISTS" == true || "$MISTRAL_MODEL_EXISTS" == true ]]; then
                             log_info "Deleting all workshop content..."
-                            aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ --recursive
+                            aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/ --recursive
                             log_info "All workshop content deleted"
                         else
                             log_warn "No workshop content found - nothing to delete"
@@ -394,19 +394,19 @@ main() {
                             
                             if [[ "$WORKSHOP_FOLDER_EXISTS" == true ]]; then
                                 echo "  # Delete workshop folder only:"
-                                echo "  aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ --recursive --exclude 'assets/Mistral-7B-Instruct-v0.2/*'"
+                                echo "  aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/ --recursive --exclude 'models/*'"
                                 echo ""
                             fi
                             
                             if [[ "$MISTRAL_MODEL_EXISTS" == true ]]; then
-                                echo "  # Delete Mistral model only:"
-                                echo "  aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/assets/Mistral-7B-Instruct-v0.2/ --recursive"
+                                echo "  # Delete 3D models only:"
+                                echo "  aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/models/ --recursive"
                                 echo ""
                             fi
                             
                             if [[ "$WORKSHOP_FOLDER_EXISTS" == true || "$MISTRAL_MODEL_EXISTS" == true ]]; then
                                 echo "  # Delete all workshop content:"
-                                echo "  aws s3 rm s3://${ASSET_BUCKET}/genai-fsx-workshop-on-eks-auto/ --recursive"
+                                echo "  aws s3 rm s3://${ASSET_BUCKET}/3d-model-generation-playground/ --recursive"
                             fi
                         else
                             log_info "No workshop content found to clean up"
@@ -424,7 +424,7 @@ main() {
     # Step 3: Local file cleanup
     log_step "Step 3: Local file cleanup"
     
-    LOCAL_DIRS=("genai-fsx-workshop-on-eks-auto" "work-dir")
+    LOCAL_DIRS=("3d-model-generation-playground" "work-dir")
     
     for dir in "${LOCAL_DIRS[@]}"; do
         if [[ -d "$dir" ]]; then

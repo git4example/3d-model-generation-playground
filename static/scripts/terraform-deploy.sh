@@ -1,28 +1,23 @@
 #!/bin/bash
 terraform --version
 
-echo "Creating FSx Lustre Bucket"
-terraform apply -target="module.fsx-lustre-bucket" -auto-approve 
-
 # Create VPC
 echo '=== Create VPC for EKS Cluster ==='
 terraform apply -target="module.vpc" --auto-approve 
 
+# Create S3 bucket for 3D models
+echo "Creating S3 bucket for 3D models"
+terraform apply -target="aws_s3_bucket.models_bucket" -auto-approve 
 
-# Create EKS Cluster and FSx Filesystem
-echo '=== Create EKS Cluster and FSx Filesystem ==='
-terraform apply -target="aws_fsx_lustre_file_system.fsx_lustre" -target="module.eks" --auto-approve
+# Create EKS Cluster and EFS Filesystem
+echo '=== Create EKS Cluster and EFS Filesystem ==='
+terraform apply -target="aws_efs_file_system.efs" -target="module.eks" --auto-approve
 
+# Create DynamoDB tables
+echo "Creating DynamoDB tables"
+terraform apply -target="aws_dynamodb_table.models_table" -auto-approve
 
 echo "Terraform Apply for rest of the resources ..."
 terraform apply --auto-approve
 
-echo "Running sysprep job"
-terraform apply -var="create_one_off_job=true" --auto-approve
-
-echo "Deleting FSx Lustre sysprep resources...Deleting sysprep sysprep job, pv, pvc and fsx csi driver"
-
-echo "Deleting with create_one_off_job=false --> kubernetes_job.sysprep, kubectl_manifest.sysprep_pvc, kubectl_manifest.sysprep_pv, helm_release.fsx_csi_driver..."
-terraform apply -var="create_one_off_job=false" --auto-approve 
-
-echo "Cleanup completed."
+echo "Deployment completed successfully!"
