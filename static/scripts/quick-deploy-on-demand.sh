@@ -480,18 +480,47 @@ if ! aws sts get-caller-identity &>/dev/null; then
 fi
 
 # Get AWS region
-AWS_REGION=$(get_aws_region)
+DETECTED_REGION=$(get_aws_region)
 
-if [[ -z "$AWS_REGION" ]]; then
+echo "Available regions:"
+echo "  us-east-1 (N. Virginia)"
+echo "  us-west-2 (Oregon)"
+echo "  eu-west-1 (Ireland)"
+echo "  eu-central-1 (Frankfurt)"
+echo "  ap-southeast-1 (Singapore)"
+echo "  ap-northeast-1 (Tokyo)"
+echo ""
+
+if [[ -n "$DETECTED_REGION" ]]; then
+    log_info "Detected AWS Region: $DETECTED_REGION"
+    read -p "Do you want to deploy to $DETECTED_REGION? (Y/n): " USE_DETECTED_REGION
+    
+    if [[ "$USE_DETECTED_REGION" =~ ^[Nn]$ ]]; then
+        # User wants to use a different region
+        while true; do
+            read -p "Enter AWS region to deploy to: " AWS_REGION
+            
+            if [[ -z "$AWS_REGION" ]]; then
+                log_error "Region cannot be empty"
+                continue
+            fi
+            
+            # Validate region by trying to list S3 buckets in that region
+            if aws s3 ls --region "$AWS_REGION" &>/dev/null; then
+                log_info "Region $AWS_REGION validated successfully"
+                break
+            else
+                log_error "Invalid region or no access to region: $AWS_REGION"
+                log_error "Please enter a valid AWS region"
+            fi
+        done
+    else
+        # User accepts the detected region
+        AWS_REGION="$DETECTED_REGION"
+        log_info "Using detected region: $AWS_REGION"
+    fi
+else
     log_warn "Could not automatically detect AWS region"
-    echo "Available regions:"
-    echo "  us-east-1 (N. Virginia)"
-    echo "  us-west-2 (Oregon)"
-    echo "  eu-west-1 (Ireland)"
-    echo "  eu-central-1 (Frankfurt)"
-    echo "  ap-southeast-1 (Singapore)"
-    echo "  ap-northeast-1 (Tokyo)"
-    echo ""
     
     while true; do
         read -p "Enter AWS region to deploy to: " AWS_REGION
@@ -510,8 +539,6 @@ if [[ -z "$AWS_REGION" ]]; then
             log_error "Please enter a valid AWS region"
         fi
     done
-else
-    log_info "Detected AWS Region: $AWS_REGION"
 fi
 
 export AWS_REGION
