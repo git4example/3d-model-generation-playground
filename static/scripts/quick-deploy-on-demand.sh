@@ -7,8 +7,18 @@
 #
 # USAGE: ./quick-deploy-on-demand.sh
 # 
+# ENVIRONMENTS SUPPORTED:
+# - EC2 instances (uses IAM role credentials and instance metadata)
+# - Local machines (uses configured AWS credentials, prompts for region)
+# - Operating Systems: Amazon Linux, Ubuntu, macOS, RHEL/CentOS
+#
+# PREREQUISITES FOR LOCAL EXECUTION:
+# - AWS credentials configured (aws configure, environment variables, or AWS SSO)
+# - Internet connectivity
+# - Sufficient permissions to create AWS resources
+# 
 # This script automates all the manual steps from the workshop README:
-# - Tool installation (AWS CLI, Docker, Git, jq)
+# - Tool installation (AWS CLI, Docker, Git, jq) - OS-specific
 # - Repository cloning
 # - S3 bucket creation and file upload
 # - Workshop assets and code upload
@@ -232,50 +242,143 @@ validate_bucket_name() {
 # Part 1 : Prerequisite of setting up an On-demand Workshop (using your own AWS account)
 log_info "Starting On-demand Workshop Setup..."
 
+# Detect environment and provide guidance
+if is_ec2_instance; then
+    log_info "Detected EC2 instance environment"
+    log_info "Will use IAM role credentials and instance metadata for region detection"
+else
+    log_info "Detected local machine environment"
+    log_info "Will use configured AWS credentials and prompt for region if needed"
+    log_info "Make sure you have AWS credentials configured via:"
+    echo "  - AWS CLI: aws configure"
+    echo "  - Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY"
+    echo "  - AWS SSO: aws sso login"
+    echo ""
+fi
+
+# Function to detect OS and install packages accordingly
+install_package() {
+    local package_name=$1
+    local install_command=""
+    
+    if command -v dnf &> /dev/null; then
+        # Amazon Linux 2023, RHEL 8+, Fedora
+        install_command="sudo dnf install -y $package_name"
+    elif command -v yum &> /dev/null; then
+        # Amazon Linux 2, RHEL 7, CentOS
+        install_command="sudo yum install -y $package_name"
+    elif command -v apt-get &> /dev/null; then
+        # Ubuntu, Debian
+        sudo apt-get update
+        install_command="sudo apt-get install -y $package_name"
+    elif command -v brew &> /dev/null; then
+        # macOS with Homebrew
+        install_command="brew install $package_name"
+    else
+        log_error "Unsupported package manager. Please install $package_name manually."
+        return 1
+    fi
+    
+    log_info "Installing $package_name using: $install_command"
+    eval $install_command
+}
+
 # Install AWS CLI if not present
 if ! check_command aws; then
     log_info "Installing AWS CLI..."
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
-    rm -rf aws awscliv2.zip
+    
+    # Detect OS and architecture for AWS CLI installation
+    OS=$(uname -s)
+    ARCH=$(uname -m)
+    
+    case "$OS" in
+        "Linux")
+            if [[ "$ARCH" == "x86_64" ]]; then
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            elif [[ "$ARCH" == "aarch64" ]]; then
+                curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+            else
+                log_error "Unsupported architecture: $ARCH"
+                exit 1
+            fi
+            unzip awscliv2.zip
+            sudo ./aws/install
+            rm -rf aws awscliv2.zip
+            ;;
+        "Darwin")
+            # macOS
+            curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+            sudo installer -pkg AWSCLIV2.pkg -target /
+            rm AWSCLIV2.pkg
+            ;;
+        *)
+            log_error "Unsupported operating system: $OS"
+            log_error "Please install AWS CLI manually from: https://aws.amazon.com/cli/"
+            exit 1
+            ;;
+    esac
 else
     log_info "AWS CLI already installed"
 fi
 
-# Install Docker if not present
+# Install Docker if not present (skip on macOS as it requires Docker Desktop)
 if ! check_command docker; then
-    log_info "Installing Docker..."
-    # Try dnf first (AL2023), then yum (AL2) as fallback
-    if command -v dnf &> /dev/null; then
-        sudo dnf install -y docker
+    OS=$(uname -s)
+    if [[ "$OS" == "Darwin" ]]; then
+        log_warn "Docker not found on macOS. Please install Docker Desktop manually:"
+        log_warn "https://docs.docker.com/desktop/install/mac-install/"
+        log_warn "Continuing without Docker installation..."
     else
-        sudo yum install -y docker
+        log_info "Installing Docker..."
+        install_package docker
+        
+        # Start Docker service on Linux
+        if command -v systemctl &> /dev/null; then
+            sudo systemctl start docker
+            sudo systemctl enable docker
+        else
+            sudo service docker start
+        fi
+        
+        # Add current user to docker group (Linux only)
+        if [[ "$OS" == "Linux" ]]; then
+            sudo usermod -a -G docker $USER
+            log_info "Added $USER to docker group. You may need to log out and back in for this to take effect."
+        fi
     fi
-    sudo service docker start
-    sudo usermod -a -G docker participant
 else
     log_info "Docker already installed"
-    # Ensure Docker is running
-    if ! sudo systemctl is-active --quiet docker; then
-        log_info "Starting Docker service..."
-        sudo service docker start
+    # Ensure Docker is running on Linux
+    OS=$(uname -s)
+    if [[ "$OS" == "Linux" ]]; then
+        if command -v systemctl &> /dev/null; then
+            if ! sudo systemctl is-active --quiet docker; then
+                log_info "Starting Docker service..."
+                sudo systemctl start docker
+            fi
+        else
+            sudo service docker start
+        fi
     fi
 fi
 
-# Test Docker access
-log_info "Testing Docker access..."
-sudo docker ps
+# Test Docker access (only if Docker is available)
+if check_command docker; then
+    log_info "Testing Docker access..."
+    if docker ps &>/dev/null; then
+        log_info "Docker is accessible"
+    else
+        log_warn "Docker is installed but not accessible. You may need to:"
+        echo "  1. Start Docker Desktop (on macOS/Windows)"
+        echo "  2. Log out and back in (on Linux after adding to docker group)"
+        echo "  3. Run with sudo (not recommended for production)"
+    fi
+fi
 
 # Install Git if not present
 if ! check_command git; then
     log_info "Installing Git..."
-    # Try dnf first (AL2023), then yum (AL2) as fallback
-    if command -v dnf &> /dev/null; then
-        sudo dnf install git -y
-    else
-        sudo yum install git -y
-    fi
+    install_package git
 else
     log_info "Git already installed"
 fi
@@ -283,17 +386,16 @@ fi
 # Install jq if not present
 if ! check_command jq; then
     log_info "Installing jq..."
-    # Try dnf first (AL2023), then yum (AL2) as fallback
-    if command -v dnf &> /dev/null; then
-        sudo dnf install jq -y
-    else
-        sudo yum install jq -y
-    fi
+    install_package jq
 else
     log_info "jq already installed"
 fi
 
+# Verify installations
+log_info "Verifying tool installations..."
+aws --version
 git --version
+jq --version
 
 # Configure Git (only if not already configured)
 if [[ -z "$(git config --global user.name)" ]]; then
@@ -313,23 +415,106 @@ else
     log_info "Workshop repository already exists"
 fi
 
+# Function to detect if running on EC2
+is_ec2_instance() {
+    # Try to access EC2 metadata service with a short timeout
+    if curl -s --max-time 2 -f http://169.254.169.254/latest/meta-data/ &>/dev/null; then
+        return 0  # Running on EC2
+    else
+        return 1  # Not running on EC2
+    fi
+}
+
+# Function to get AWS region
+get_aws_region() {
+    local region=""
+    
+    # First, check if AWS_REGION is already set
+    if [[ -n "$AWS_REGION" ]]; then
+        echo "$AWS_REGION"
+        return 0
+    fi
+    
+    # Try to get region from EC2 metadata if on EC2
+    if is_ec2_instance; then
+        log_info "Detected EC2 instance, getting region from metadata..."
+        export TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+        region=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region 2>/dev/null)
+        
+        if [[ -n "$region" ]]; then
+            echo "$region"
+            return 0
+        fi
+    fi
+    
+    # Try to get region from AWS CLI configuration
+    region=$(aws configure get region 2>/dev/null)
+    if [[ -n "$region" ]]; then
+        echo "$region"
+        return 0
+    fi
+    
+    # Try to get region from AWS_DEFAULT_REGION environment variable
+    if [[ -n "$AWS_DEFAULT_REGION" ]]; then
+        echo "$AWS_DEFAULT_REGION"
+        return 0
+    fi
+    
+    # If all else fails, return empty string
+    echo ""
+    return 1
+}
+
 # Get AWS region and validate credentials
 log_info "Detecting AWS region and validating credentials..."
-export TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
-export AWS_REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region)
 
-if [[ -z "$AWS_REGION" ]]; then
-    log_error "Failed to detect AWS region from instance metadata"
-    exit 1
-fi
-
-log_info "Detected AWS Region: $AWS_REGION"
-
-# Validate AWS credentials
+# Validate AWS credentials first
 if ! aws sts get-caller-identity &>/dev/null; then
     log_error "AWS credentials not configured or invalid"
+    log_error "Please configure AWS credentials using one of these methods:"
+    echo "  1. AWS CLI: aws configure"
+    echo "  2. Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY"
+    echo "  3. IAM role (if running on EC2)"
+    echo "  4. AWS SSO: aws sso login"
     exit 1
 fi
+
+# Get AWS region
+AWS_REGION=$(get_aws_region)
+
+if [[ -z "$AWS_REGION" ]]; then
+    log_warn "Could not automatically detect AWS region"
+    echo "Available regions:"
+    echo "  us-east-1 (N. Virginia)"
+    echo "  us-west-2 (Oregon)"
+    echo "  eu-west-1 (Ireland)"
+    echo "  eu-central-1 (Frankfurt)"
+    echo "  ap-southeast-1 (Singapore)"
+    echo "  ap-northeast-1 (Tokyo)"
+    echo ""
+    
+    while true; do
+        read -p "Enter AWS region to deploy to: " AWS_REGION
+        
+        if [[ -z "$AWS_REGION" ]]; then
+            log_error "Region cannot be empty"
+            continue
+        fi
+        
+        # Validate region by trying to list S3 buckets in that region
+        if aws s3 ls --region "$AWS_REGION" &>/dev/null; then
+            log_info "Region $AWS_REGION validated successfully"
+            break
+        else
+            log_error "Invalid region or no access to region: $AWS_REGION"
+            log_error "Please enter a valid AWS region"
+        fi
+    done
+else
+    log_info "Detected AWS Region: $AWS_REGION"
+fi
+
+export AWS_REGION
 
 # Request bucket name with validation
 BUCKET_CREATED=false
@@ -403,21 +588,39 @@ fi
 # Skip model download for 3D model generation playground
 log_info "Skipping model download - 3D models will be downloaded during workshop execution"
 
-# Get AWS credentials from instance metadata
-log_info "Retrieving AWS credentials from instance metadata..."
-export ROLE_NAME=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/)
-export CREDENTIALS=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/$ROLE_NAME)
-export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.AccessKeyId')
-export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.SecretAccessKey')
-export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Token')
+# Handle AWS credentials based on environment
+if is_ec2_instance; then
+    log_info "Running on EC2 instance, using IAM role credentials..."
+    
+    # Get AWS credentials from instance metadata
+    log_info "Retrieving AWS credentials from instance metadata..."
+    export ROLE_NAME=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/)
+    export CREDENTIALS=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/$ROLE_NAME)
+    export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.AccessKeyId')
+    export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.SecretAccessKey')
+    export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Token')
 
-# Validate credentials were retrieved
-if [[ -z "$AWS_ACCESS_KEY_ID" || "$AWS_ACCESS_KEY_ID" == "null" ]]; then
-    log_error "Failed to retrieve AWS credentials from instance metadata"
-    exit 1
+    # Validate credentials were retrieved
+    if [[ -z "$AWS_ACCESS_KEY_ID" || "$AWS_ACCESS_KEY_ID" == "null" ]]; then
+        log_error "Failed to retrieve AWS credentials from instance metadata"
+        exit 1
+    fi
+
+    log_info "AWS credentials retrieved successfully from EC2 instance metadata"
+else
+    log_info "Running on local machine, using configured AWS credentials..."
+    
+    # Verify credentials are working (already checked above, but double-check)
+    CALLER_IDENTITY=$(aws sts get-caller-identity 2>/dev/null)
+    if [[ $? -eq 0 ]]; then
+        USER_ARN=$(echo "$CALLER_IDENTITY" | jq -r '.Arn // empty')
+        ACCOUNT_ID=$(echo "$CALLER_IDENTITY" | jq -r '.Account // empty')
+        log_info "Using AWS credentials for: $USER_ARN (Account: $ACCOUNT_ID)"
+    else
+        log_error "AWS credentials validation failed"
+        exit 1
+    fi
 fi
-
-log_info "AWS credentials retrieved successfully"
 
 # Set asset bucket path for 3D model generation playground
 ASSET_BUCKET_PATH=3d-model-generation-playground
@@ -465,7 +668,7 @@ if check_cloudformation_stack "$STACK_NAME"; then
           ParameterKey=HomeFolder,ParameterValue=environment \
           ParameterKey=DevServerPort,ParameterValue=8081 \
           ParameterKey=AssetZipS3Path,ParameterValue=${ASSET_BUCKET_ZIPPATH} \
-          ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/static/ \
+          ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/ \
           --tags Key=auto-delete,Value=no \
           --capabilities CAPABILITY_NAMED_IAM
     else
@@ -486,7 +689,7 @@ else
       ParameterKey=HomeFolder,ParameterValue=environment \
       ParameterKey=DevServerPort,ParameterValue=8081 \
       ParameterKey=AssetZipS3Path,ParameterValue=${ASSET_BUCKET_ZIPPATH} \
-      ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/static/ \
+      ParameterKey=Assets,ParameterValue=s3://${ASSET_BUCKET}/${ASSET_BUCKET_PATH}/assets/ \
       --tags Key=auto-delete,Value=no \
       --disable-rollback \
       --capabilities CAPABILITY_NAMED_IAM

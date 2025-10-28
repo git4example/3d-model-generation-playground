@@ -63,9 +63,7 @@ Alternative for simplicity, you may like to use AWS managed policies: `Administr
 Run the automated deployment script :
 
 ```bash
-# Download and run the deployment script
-# curl -O https://raw.githubusercontent.com/aws-samples/3d-model-generation-playground/main/static/scripts/quick-deploy-on-demand.sh
-curl -O https://raw.githubusercontent.com/git4example/3d-model-generation-playground/main/static/scripts/quick-deploy-on-demand.sh
+curl -O https://raw.githubusercontent.com/git4example/3d-model-generation-playground/mainline/static/scripts/quick-deploy-on-demand.sh
 chmod +x quick-deploy-on-demand.sh
 ./quick-deploy-on-demand.sh
 ```
